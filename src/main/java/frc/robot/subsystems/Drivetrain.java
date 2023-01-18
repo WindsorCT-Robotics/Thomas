@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
@@ -24,11 +25,6 @@ public class Drivetrain extends SubsystemBase {
     private int D_GAIN = 0;
     private int F_GAIN = 0;
 
-    // Closed loop variables
-    private boolean positionLockEngaged = false;
-    private boolean rotationLockEngaged = false;
-    private double rotation = 0;
-
     // Motors
     private final WPI_TalonFX leftMaster;
     private final WPI_TalonFX leftFollower;
@@ -40,6 +36,8 @@ public class Drivetrain extends SubsystemBase {
     TalonFXConfiguration rightConfig;
 
     private final WPI_Pigeon2 pidgey;
+
+    private final DifferentialDrive drive;
 
     private static WPI_TalonFX initMotor(int deviceNumber) {
         WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
@@ -70,11 +68,14 @@ public class Drivetrain extends SubsystemBase {
         pidgey = new WPI_Pigeon2(20);
         pidgey.configFactoryDefault();
 
+        // initialize drivetrain
+        drive = new DifferentialDrive(leftMaster, rightMaster);
+
         // Configure motor peak outputs
-        leftConfig.peakOutputForward = 1;
-        leftConfig.peakOutputReverse = -1;
-        rightConfig.peakOutputForward = 1;
-        rightConfig.peakOutputReverse = -1;
+        leftConfig.peakOutputForward = 1; 
+        leftConfig.peakOutputReverse = -1; 
+        rightConfig.peakOutputForward = 1; 
+        rightConfig.peakOutputReverse = -1; 
 
         // Right side is the ultimate master controller
         // Set pigeon as remote sensor
@@ -102,30 +103,6 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
 
-    }
-
-    public boolean isRotationLockEngaged() {
-        return rotationLockEngaged;
-    }
-
-    public void setRotationLockEngaged(boolean rotationLockEngaged) {
-        this.rotationLockEngaged = rotationLockEngaged;
-    }
-
-    public double getRotation() {
-        return rotation;
-    }
-
-    public void setRotation(double rotation) {
-        this.rotation = rotation;
-    }
-
-    public boolean isPositionLockEngaged() {
-        return positionLockEngaged;
-    }
-
-    public void setPositionLockEngaged(boolean positionLockEngaged) {
-        this.positionLockEngaged = positionLockEngaged;
     }
 
 }
