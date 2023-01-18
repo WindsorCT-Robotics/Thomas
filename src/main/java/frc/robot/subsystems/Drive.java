@@ -9,7 +9,7 @@ import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Drivetrain extends SubsystemBase {
+public class Drive extends SubsystemBase {
 
     // Constants
     // Pidgeon hardware constant
@@ -19,11 +19,10 @@ public class Drivetrain extends SubsystemBase {
     // Allowable deadband
     public static final double NEUTRAL_DEADBAND = .001;
     // PID gains
-    // We should be able to adjust these from the smart dashboard
-    private int P_GAIN = 0;
-    private int I_GAIN = 0;
-    private int D_GAIN = 0;
-    private int F_GAIN = 0;
+    private static final int P_GAIN = 0;
+    private static final int I_GAIN = 0;
+    private static final int D_GAIN = 0;
+    private static final int F_GAIN = 0;
 
     // Motors
     private final WPI_TalonFX leftMaster;
@@ -53,7 +52,7 @@ public class Drivetrain extends SubsystemBase {
         addChild("RightFollowerMotor", rightFollower);
     }
 
-    public Drivetrain() {
+    public Drive() {
         // initialize motors
         leftMaster = initMotor(1);
         leftFollower = initMotor(2);
