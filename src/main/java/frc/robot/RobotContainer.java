@@ -7,11 +7,11 @@ package frc.robot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
 
-  public final Drive drive = new Drive();
+  public final Drivetrain drive = new Drivetrain();
   public final XboxController driveController = new XboxController(1);
 
   public RobotContainer() {

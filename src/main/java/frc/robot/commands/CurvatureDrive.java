@@ -1,5 +1,5 @@
 package frc.robot.commands;
 
-public class DriveCommand {
+public class CurvatureDrive {
     
 }
