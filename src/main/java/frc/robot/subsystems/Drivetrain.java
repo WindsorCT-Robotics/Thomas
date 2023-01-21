@@ -21,7 +21,7 @@ public class Drivetrain extends SubsystemBase {
     private boolean positionLock = false;
     private boolean antiDrift = false;
 
-    private double rotation = 0.0;
+    private double heading = 0.0;
     private boolean rotationLock = false;
 
     private static Drivetrain drive;
@@ -47,6 +47,11 @@ public class Drivetrain extends SubsystemBase {
 
     }
 
+    /**
+     * Get the drivetrain instance
+     * 
+     * @return drivetrain instance
+     */
     public static synchronized Drivetrain getInstance() {
         if (drive == null) {
             drive = new Drivetrain();
@@ -59,47 +64,110 @@ public class Drivetrain extends SubsystemBase {
         // TODO Auto-generated method stub
     }
 
+    /**
+     * Set neutral mode of the left and right drivetrain motors
+     * 
+     * @param neutralMode Target neutral mode - brake or coast - of drivetrain
+     */
     public void setNeutralMode(NeutralMode neutralMode) {
         leftMaster.setNeutralMode(neutralMode);
         rightMaster.setNeutralMode(neutralMode);
     }
 
+    /**
+     * Get position lock status
+     * The position lock should lock the robot in place
+     * This feature is intended for the Rotate command
+     * 
+     * @return Position lock status
+     */
     public boolean isPositionLock() {
         return positionLock;
     }
 
+    /**
+     * Turn the position lock on/off
+     * The position lock should lock the robot in place
+     * This feature is intended for the Rotate command
+     * 
+     * @param positionLock
+     */
     public void setPositionLock(boolean positionLock) {
         this.positionLock = positionLock;
     }
 
+    /**
+     * Get rotation lock status
+     * The rotation lock should close the loop on heading
+     * 
+     * @return Rotation lock status
+     */
     public boolean isRotationLock() {
         return rotationLock;
     }
 
+    /**
+     * Turn rotation lock on/off
+     * The rotation lock should close the loop on heading
+     * 
+     * @param rotationLock
+     */
     public void setRotationLock(boolean rotationLock) {
         this.rotationLock = rotationLock;
     }
 
+    /**
+     * Get anti-drift status
+     * The anti-drift system uses the strafe wheel to prevent drifting on turns
+     * 
+     * @return Anti-drift status
+     */
     public boolean isAntiDrift() {
         return antiDrift;
     }
 
+    /**
+     * Turn anti-drift system on/off
+     * The anti-drift system uses the strafe wheel to prevent drifting on turns
+     * 
+     * @param antiDrift
+     */
     public void setAntiDrift(boolean antiDrift) {
         this.antiDrift = antiDrift;
     }
 
-    public double getRotation() {
-        return rotation;
+    /**
+     * Get the current heading in degrees
+     * 
+     * @return the current heading in degrees
+     */
+    public double getHeading() {
+        return heading;
     }
 
-    public void setRotation(double rotation) {
-        this.rotation = rotation;
+    /**
+     * Set the target robot heading
+     * 
+     * @param heading
+     */
+    public void setHeading(double heading) {
+        this.heading = heading;
     }
 
+    /**
+     * Get the current speed in m/s
+     * 
+     * @return Current speed in m/s
+     */
     public double getSpeed() {
         return speed;
     }
 
+    /**
+     * Set the target robot speed in m/s
+     * 
+     * @param speed Target robot speed in m/s
+     */
     public void setSpeed(double speed) {
         this.speed = speed;
     }
