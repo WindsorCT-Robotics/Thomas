@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.Drive;
+import frc.robot.commands.Hold;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -17,13 +18,14 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureBindings();
-    drive.setDefaultCommand(new Drive());
+    drive.setDefaultCommand(new Hold());
   }
 
   private void configureBindings() {
     // Robot state while moving
     final Trigger driveState = new Trigger(() -> applyJoystickDeadzone(driveController.getLeftY(), 0.05) != 0);
-    driveState.whileTrue(new Drive());
+    driveState.whileTrue(new Drive(() -> applyJoystickDeadzone(driveController.getRightX(), 0.1),
+        () -> applyJoystickDeadzone(driveController.getLeftY(), 0.1)));
   }
 
   public Command getAutonomousCommand() {
