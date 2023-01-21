@@ -1,14 +1,21 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
+import com.ctre.phoenix.motorcontrol.FollowerType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
+import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Gains;
 
 public class Drivetrain extends SubsystemBase {
     // Motors
@@ -26,15 +33,32 @@ public class Drivetrain extends SubsystemBase {
     // Gyroscope
     private final WPI_Pigeon2 pidgey;
 
+    // Neutral deadband
+    private final double neutralDeadband = .001;
+
+    // Timeout ms
+    private final int timeoutMs = 30;
+
+    // Named hardware slots
+    private final static int SLOT_DISTANCE = 0;
+    private final static int SLOT_TURNING = 1;
+    // We allow either a 0 or 1 when selecting a PID Index, where 0 is primary and 1
+    // is auxiliary
+    private final static int PID_PRIMARY = 0;
+    private final static int PID_TURN = 1;
+
     // Control variables
     private double speed = 0.0;
     private boolean positionLock = false;
     private boolean antiDrift = false;
 
-    private double yaw = 0.0;
+    private double absoluteHeading = 0.0;
     private boolean rotationLock = false;
 
     private static Drivetrain drive;
+
+    private final Gains gainsDistance;
+    private final Gains gainsTurning;
 
     private static WPI_TalonFX initMotor(int deviceNumber) {
         WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
@@ -68,6 +92,69 @@ public class Drivetrain extends SubsystemBase {
 
         setRobotDistanceConfigs(rightInvert, rightConfig);
 
+        // set pid distance gains
+        gainsDistance = new Gains(0.1, 0.0, 0.0, 0.0, 100, 0.50);
+        rightConfig.slot0.kP = gainsDistance.kP;
+        rightConfig.slot0.kI = gainsDistance.kI;
+        rightConfig.slot0.kD = gainsDistance.kD;
+        rightConfig.slot0.kF = gainsDistance.kF;
+        rightConfig.slot0.integralZone = gainsDistance.integralZone;
+        rightConfig.slot0.closedLoopPeakOutput = gainsDistance.peakOutput;
+
+        // Yaw configs
+        rightConfig.remoteFilter1.remoteSensorDeviceID = pidgey.getDeviceID(); // Pigeon Device ID
+        rightConfig.remoteFilter1.remoteSensorSource = RemoteSensorSource.Pigeon_Yaw; // This is for a Pigeon over CAN
+        rightConfig.auxiliaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.RemoteSensor1.toFeedbackDevice(); // Set
+                                                                                                                  // as
+                                                                                                                  // the
+                                                                                                                  // Aux
+                                                                                                                  // Sensor
+        rightConfig.auxiliaryPID.selectedFeedbackCoefficient = 3600.0 / 8192; // Convert Yaw to tenths of a degree (8192
+                                                                              // pigeon units per rotation)
+
+        // Yaw gains
+        gainsTurning = new Gains(2.0, 0.0, 4.0, 0.0, 200, 1.00);
+        rightConfig.slot1.kF = gainsTurning.kF;
+        rightConfig.slot1.kP = gainsTurning.kP;
+        rightConfig.slot1.kI = gainsTurning.kI;
+        rightConfig.slot1.kD = gainsTurning.kD;
+        rightConfig.slot1.integralZone = gainsTurning.integralZone;
+        rightConfig.slot1.closedLoopPeakOutput = gainsTurning.peakOutput;
+
+        // Neutral Deadband
+        // This is the allowable error
+        leftConfig.neutralDeadband = neutralDeadband;
+        rightConfig.neutralDeadband = neutralDeadband;
+
+        // Loop speed
+        int closedLoopTimeMs = 1;
+        rightConfig.slot0.closedLoopPeriod = closedLoopTimeMs;
+        rightConfig.slot1.closedLoopPeriod = closedLoopTimeMs;
+        rightConfig.slot2.closedLoopPeriod = closedLoopTimeMs;
+        rightConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
+
+        // Motion Magic configuration
+        rightConfig.motionAcceleration = 2000; // (distance units per 100 ms) per second
+        rightConfig.motionCruiseVelocity = 2000; // distance units per 100 ms
+
+        // Apply settings to master motors
+        leftMaster.configAllSettings(leftConfig);
+        rightMaster.configAllSettings(rightConfig);
+
+        // Set status frames
+        rightMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, timeoutMs);
+        rightMaster.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, timeoutMs);
+        rightMaster.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, timeoutMs);
+        rightMaster.setStatusFramePeriod(StatusFrame.Status_10_Targets, 10, timeoutMs);
+        leftMaster.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, timeoutMs);
+        pidgey.setStatusFramePeriod(PigeonIMU_StatusFrame.CondStatus_9_SixDeg_YPR, 5, timeoutMs);
+
+        rightMaster.selectProfileSlot(SLOT_DISTANCE, PID_PRIMARY);
+        rightMaster.selectProfileSlot(SLOT_TURNING, PID_TURN);
+
+        zeroSensors();
+        zeroDistance();
+
     }
 
     /**
@@ -84,7 +171,30 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // TODO Auto-generated method stub
+        double targetAngle = absoluteHeading;
+        double targetSensorUnits = speed * 2048 * 6;
+
+        rightMaster.set(ControlMode.MotionMagic, targetSensorUnits, DemandType.AuxPID, targetAngle);
+        leftMaster.follow(rightMaster, FollowerType.AuxOutput1);
+
+    }
+
+    /**
+     * Zeroes all drivetrain sensors
+     */
+    private void zeroSensors() {
+        leftMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
+        rightMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
+        pidgey.setYaw(0, timeoutMs);
+        pidgey.setAccumZAngle(0, timeoutMs);
+    }
+
+    /**
+     * Zeroes encoder distance
+     */
+    private void zeroDistance() {
+        leftMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
+        rightMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
     }
 
     /**
@@ -101,9 +211,9 @@ public class Drivetrain extends SubsystemBase {
      * aux (other side's) distance into a single robot distance.
      * 
      * @param masterInvertType Rotation direction of the master motor
-     * @param masterConfig Config of master motor
+     * @param masterConfig     Config of master motor
      */
-    void setRobotDistanceConfigs(TalonFXInvertType masterInvertType, TalonFXConfiguration masterConfig) {
+    private static void setRobotDistanceConfigs(TalonFXInvertType masterInvertType, TalonFXConfiguration masterConfig) {
         /*
          * THIS FUNCTION should not need to be modified.
          * This setup will work regardless of whether the master
@@ -226,21 +336,21 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Get the current yaw in degrees
+     * Get the current absolute heading in degrees
      * 
-     * @return the current yaw in degrees
+     * @return the current absolute heading in degrees
      */
-    public double getYaw() {
-        return yaw;
+    public double getAbsoluteHeading() {
+        return absoluteHeading;
     }
 
     /**
-     * Set the target robot yaw
+     * Set the target robot absolute heading
      * 
-     * @param yaw
+     * @param absoluteHeading
      */
-    public void setYaw(double yaw) {
-        this.yaw = yaw;
+    public void setAbsoluteHeading(double absoluteHeading) {
+        this.absoluteHeading = absoluteHeading;
     }
 
     /**
