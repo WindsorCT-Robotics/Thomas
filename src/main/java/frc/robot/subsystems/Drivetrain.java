@@ -1,6 +1,10 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
+import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
@@ -13,6 +17,12 @@ public class Drivetrain extends SubsystemBase {
     private final WPI_TalonFX rightMaster;
     private final WPI_TalonFX rightFollower;
 
+    private final TalonFXConfiguration leftConfig;
+    private final TalonFXConfiguration rightConfig;
+
+    private final TalonFXInvertType leftInvert = TalonFXInvertType.CounterClockwise;
+    private final TalonFXInvertType rightInvert = TalonFXInvertType.Clockwise;
+
     // Gyroscope
     private final WPI_Pigeon2 pidgey;
 
@@ -21,7 +31,7 @@ public class Drivetrain extends SubsystemBase {
     private boolean positionLock = false;
     private boolean antiDrift = false;
 
-    private double heading = 0.0;
+    private double yaw = 0.0;
     private boolean rotationLock = false;
 
     private static Drivetrain drive;
@@ -39,11 +49,24 @@ public class Drivetrain extends SubsystemBase {
         rightMaster = initMotor(3);
         rightFollower = initMotor(4);
 
+        leftConfig = new TalonFXConfiguration();
+        rightConfig = new TalonFXConfiguration();
+
         leftFollower.follow(leftMaster);
         rightFollower.follow(rightMaster);
 
+        leftMaster.setInverted(leftInvert);
+        rightMaster.setInverted(rightInvert);
+
         pidgey = new WPI_Pigeon2(20);
         pidgey.configFactoryDefault();
+
+        leftConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+
+        rightConfig.remoteFilter0.remoteSensorDeviceID = leftMaster.getDeviceID();
+        rightConfig.remoteFilter0.remoteSensorSource = RemoteSensorSource.TalonFX_SelectedSensor;
+
+        setRobotDistanceConfigs(rightInvert, rightConfig);
 
     }
 
@@ -62,6 +85,72 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
         // TODO Auto-generated method stub
+    }
+
+    /**
+     * Determine if we need a Sum or Difference.
+     * 
+     * The auxiliary Talon FX will always be positive
+     * in the forward direction because it's a selected sensor
+     * over the CAN bus.
+     * 
+     * The master's native integrated sensor may not always be positive when forward
+     * because
+     * sensor phase is only applied to *Selected Sensors*, not native
+     * sensor sources. And we need the native to be combined with the
+     * aux (other side's) distance into a single robot distance.
+     * 
+     * @param masterInvertType Rotation direction of the master motor
+     * @param masterConfig Config of master motor
+     */
+    void setRobotDistanceConfigs(TalonFXInvertType masterInvertType, TalonFXConfiguration masterConfig) {
+        /*
+         * THIS FUNCTION should not need to be modified.
+         * This setup will work regardless of whether the master
+         * is on the Right or Left side since it only deals with
+         * distance magnitude.
+         */
+
+        /* Check if we're inverted */
+        if (masterInvertType == TalonFXInvertType.Clockwise) {
+            /*
+             * If master is inverted, that means the integrated sensor
+             * will be negative in the forward direction.
+             * If master is inverted, the final sum/diff result will also be inverted.
+             * This is how Talon FX corrects the sensor phase when inverting
+             * the motor direction. This inversion applies to the *Selected Sensor*,
+             * not the native value.
+             * Will a sensor sum or difference give us a positive total magnitude?
+             * Remember the Master is one side of your drivetrain distance and
+             * Auxiliary is the other side's distance.
+             * Phase | Term 0 | Term 1 | Result
+             * Sum: -((-)Master + (+)Aux )| NOT OK, will cancel each other out
+             * Diff: -((-)Master - (+)Aux )| OK - This is what we want, magnitude will be
+             * correct and positive.
+             * Diff: -((+)Aux - (-)Master)| NOT OK, magnitude will be correct but negative
+             */
+
+            masterConfig.diff0Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); // Local Integrated
+                                                                                                // Sensor
+            masterConfig.diff1Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice(); // Aux Selected Sensor
+            masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorDifference.toFeedbackDevice(); // Diff0
+                                                                                                                        // -
+                                                                                                                        // Diff1
+        } else {
+            /* Master is not inverted, both sides are positive so we can sum them. */
+            masterConfig.sum0Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice(); // Aux Selected Sensor
+            masterConfig.sum1Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); // Local IntegratedSensor
+            masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorSum.toFeedbackDevice(); // Sum0
+                                                                                                                 // +
+                                                                                                                 // Sum1
+        }
+
+        /*
+         * Since the Distance is the sum of the two sides, divide by 2 so the total
+         * isn't double
+         * the real-world value
+         */
+        masterConfig.primaryPID.selectedFeedbackCoefficient = 0.5;
     }
 
     /**
@@ -110,7 +199,7 @@ public class Drivetrain extends SubsystemBase {
      * Turn rotation lock on/off
      * The rotation lock should close the loop on heading
      * 
-     * @param rotationLock
+     * @param rotationLock rotation lock on/off
      */
     public void setRotationLock(boolean rotationLock) {
         this.rotationLock = rotationLock;
@@ -130,28 +219,28 @@ public class Drivetrain extends SubsystemBase {
      * Turn anti-drift system on/off
      * The anti-drift system uses the strafe wheel to prevent drifting on turns
      * 
-     * @param antiDrift
+     * @param antiDrift anti-drift on/off
      */
     public void setAntiDrift(boolean antiDrift) {
         this.antiDrift = antiDrift;
     }
 
     /**
-     * Get the current heading in degrees
+     * Get the current yaw in degrees
      * 
-     * @return the current heading in degrees
+     * @return the current yaw in degrees
      */
-    public double getHeading() {
-        return heading;
+    public double getYaw() {
+        return yaw;
     }
 
     /**
-     * Set the target robot heading
+     * Set the target robot yaw
      * 
-     * @param heading
+     * @param yaw
      */
-    public void setHeading(double heading) {
-        this.heading = heading;
+    public void setYaw(double yaw) {
+        this.yaw = yaw;
     }
 
     /**
