@@ -13,7 +13,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Gains;
 
@@ -24,9 +23,11 @@ public class Drivetrain extends SubsystemBase {
     private final WPI_TalonFX rightMaster;
     private final WPI_TalonFX rightFollower;
 
+    // Motor configs
     private final TalonFXConfiguration leftConfig;
     private final TalonFXConfiguration rightConfig;
 
+    // Motor directions
     private final TalonFXInvertType leftInvert = TalonFXInvertType.CounterClockwise;
     private final TalonFXInvertType rightInvert = TalonFXInvertType.Clockwise;
 
@@ -36,12 +37,13 @@ public class Drivetrain extends SubsystemBase {
     // Neutral deadband
     private final double neutralDeadband = .001;
 
-    // Timeout ms
+    // Timeout ms for sensors
     private final int timeoutMs = 30;
 
     // Named hardware slots
     private final static int SLOT_DISTANCE = 0;
     private final static int SLOT_TURNING = 1;
+
     // We allow either a 0 or 1 when selecting a PID Index, where 0 is primary and 1
     // is auxiliary
     private final static int PID_PRIMARY = 0;
@@ -60,6 +62,12 @@ public class Drivetrain extends SubsystemBase {
     private final Gains gainsDistance;
     private final Gains gainsTurning;
 
+    /**
+     * Convenience method for initializing motors
+     * 
+     * @param deviceNumber CAN ID of motor
+     * @return The configured motor
+     */
     private static WPI_TalonFX initMotor(int deviceNumber) {
         WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
         motor.configFactoryDefault();
@@ -68,25 +76,33 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public Drivetrain() {
+        // Initialize motors
         leftMaster = initMotor(1);
         leftFollower = initMotor(2);
         rightMaster = initMotor(3);
         rightFollower = initMotor(4);
 
+        // Create motor configs
         leftConfig = new TalonFXConfiguration();
         rightConfig = new TalonFXConfiguration();
 
+        // Set master and follower motors
         leftFollower.follow(leftMaster);
         rightFollower.follow(rightMaster);
 
+        // Set motor turn directions
         leftMaster.setInverted(leftInvert);
         rightMaster.setInverted(rightInvert);
 
+        // Initialize Pigeon 2.0, a 9-axis combined accelerometer, gyroscope, and
+        // magnetometer
         pidgey = new WPI_Pigeon2(20);
         pidgey.configFactoryDefault();
 
+        // Set left talon's encoder as its primary feedback device
         leftConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
 
+        // Set left feedback sensor as right's remote sensor
         rightConfig.remoteFilter0.remoteSensorDeviceID = leftMaster.getDeviceID();
         rightConfig.remoteFilter0.remoteSensorSource = RemoteSensorSource.TalonFX_SelectedSensor;
 
@@ -103,14 +119,12 @@ public class Drivetrain extends SubsystemBase {
 
         // Yaw configs
         rightConfig.remoteFilter1.remoteSensorDeviceID = pidgey.getDeviceID(); // Pigeon Device ID
-        rightConfig.remoteFilter1.remoteSensorSource = RemoteSensorSource.Pigeon_Yaw; // This is for a Pigeon over CAN
-        rightConfig.auxiliaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.RemoteSensor1.toFeedbackDevice(); // Set
-                                                                                                                  // as
-                                                                                                                  // the
-                                                                                                                  // Aux
-                                                                                                                  // Sensor
-        rightConfig.auxiliaryPID.selectedFeedbackCoefficient = 3600.0 / 8192; // Convert Yaw to tenths of a degree (8192
-                                                                              // pigeon units per rotation)
+        // This is for a Pigeon over CAN
+        rightConfig.remoteFilter1.remoteSensorSource = RemoteSensorSource.Pigeon_Yaw;
+        // Set as the Aux Sensor
+        rightConfig.auxiliaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.RemoteSensor1.toFeedbackDevice();
+        // Convert Yaw to tenths of a degree (8192 pigeon units per rotation)
+        rightConfig.auxiliaryPID.selectedFeedbackCoefficient = 3600.0 / 8192;
 
         // Yaw gains
         gainsTurning = new Gains(2.0, 0.0, 4.0, 0.0, 200, 1.00);
@@ -141,7 +155,7 @@ public class Drivetrain extends SubsystemBase {
         leftMaster.configAllSettings(leftConfig);
         rightMaster.configAllSettings(rightConfig);
 
-        // Set status frames
+        // Set status frame periods to avoid flooding the CAN bus
         rightMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, timeoutMs);
         rightMaster.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, timeoutMs);
         rightMaster.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, timeoutMs);
@@ -198,6 +212,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
+     * Copied from CTRE example project:
+     *
      * Determine if we need a Sum or Difference.
      * 
      * The auxiliary Talon FX will always be positive

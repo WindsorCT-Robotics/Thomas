@@ -1,7 +1,7 @@
 package frc.robot;
 
 /**
- * Class that organizes gains when assigning values to slots
+ * Class to organize PIDF gains
  */
 public class Gains {
 	public final double kP;
@@ -10,8 +10,8 @@ public class Gains {
 	public final double kF;
 	public final int integralZone;
 	public final double peakOutput;
-	
-	public Gains(double kP, double kI, double kD, double kF, int kIzone, double kPeakOutput){
+
+	public Gains(double kP, double kI, double kD, double kF, int kIzone, double kPeakOutput) {
 		this.kP = kP;
 		this.kI = kI;
 		this.kD = kD;
