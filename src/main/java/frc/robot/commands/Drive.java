@@ -22,12 +22,20 @@ public class Drive extends CommandBase {
 
     @Override
     public void initialize() {
-        // TODO Auto-generated method stub
+        drivetrain.setPositionLock(false);
     }
 
     @Override
     public void execute() {
-        // TODO Auto-generated method stub
+        double acceleration = joystickY.getAsDouble();
+        double speed = drivetrain.getSpeed();
+        drivetrain.setSpeed(speed + acceleration);
+        final double degreesPerSecond = 90; // adjust to change curve speed
+
+        double turnStrength = joystickX.getAsDouble();
+        double heading = drivetrain.getAbsoluteHeading();
+        double rotation = (turnStrength * degreesPerSecond) / speed; // the faster we go, the slower we turn
+        drivetrain.setAbsoluteHeading(heading + rotation);
 
     }
 
