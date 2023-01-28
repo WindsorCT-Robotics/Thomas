@@ -20,6 +20,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
     drive.setDefaultCommand(
+        // If we're not moving, rotate. Otherwise, drive
         new ConditionalCommand(
             new Rotate(
                 () -> applyJoystickDeadzone(driveController.getRightX(), deadzone)),
@@ -30,6 +31,8 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+
+
   }
 
   public Command getAutonomousCommand() {

@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.FollowerType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
@@ -99,6 +100,12 @@ public class Drivetrain extends SubsystemBase {
         pidgey = new WPI_Pigeon2(20);
         pidgey.configFactoryDefault();
 
+        // Disable all motors
+        stop();
+
+        // Set motors to brake mode
+        setNeutralMode(NeutralMode.Brake);
+
         // Set left talon's encoder as its primary feedback device
         leftConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
 
@@ -110,12 +117,12 @@ public class Drivetrain extends SubsystemBase {
 
         // set pid distance gains
         gainsDistance = new Gains(0.1, 0.0, 0.0, 0.0, 100, 0.50);
-        rightConfig.slot0.kP = gainsDistance.kP;
-        rightConfig.slot0.kI = gainsDistance.kI;
-        rightConfig.slot0.kD = gainsDistance.kD;
-        rightConfig.slot0.kF = gainsDistance.kF;
-        rightConfig.slot0.integralZone = gainsDistance.integralZone;
-        rightConfig.slot0.closedLoopPeakOutput = gainsDistance.peakOutput;
+        rightConfig.slot3.kP = gainsDistance.kP;
+        rightConfig.slot3.kI = gainsDistance.kI;
+        rightConfig.slot3.kD = gainsDistance.kD;
+        rightConfig.slot3.kF = gainsDistance.kF;
+        rightConfig.slot3.integralZone = gainsDistance.integralZone;
+        rightConfig.slot3.closedLoopPeakOutput = gainsDistance.peakOutput;
 
         // Yaw configs
         rightConfig.remoteFilter1.remoteSensorDeviceID = pidgey.getDeviceID(); // Pigeon Device ID
@@ -135,6 +142,11 @@ public class Drivetrain extends SubsystemBase {
         rightConfig.slot1.integralZone = gainsTurning.integralZone;
         rightConfig.slot1.closedLoopPeakOutput = gainsTurning.peakOutput;
 
+        // Set peak output for all modes
+        leftConfig.peakOutputForward = +1.0;
+        leftConfig.peakOutputReverse = -1.0;
+        rightConfig.peakOutputForward = +1.0;
+        rightConfig.peakOutputReverse = -1.0;
         // Neutral Deadband
         // This is the allowable error
         leftConfig.neutralDeadband = neutralDeadband;
@@ -147,10 +159,6 @@ public class Drivetrain extends SubsystemBase {
         rightConfig.slot2.closedLoopPeriod = closedLoopTimeMs;
         rightConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
 
-        // Motion Magic configuration
-        rightConfig.motionAcceleration = 2000; // (distance units per 100 ms) per second
-        rightConfig.motionCruiseVelocity = 2000; // distance units per 100 ms
-
         // Apply settings to master motors
         leftMaster.configAllSettings(leftConfig);
         rightMaster.configAllSettings(rightConfig);
@@ -162,9 +170,6 @@ public class Drivetrain extends SubsystemBase {
         rightMaster.setStatusFramePeriod(StatusFrame.Status_10_Targets, 10, timeoutMs);
         leftMaster.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, timeoutMs);
         pidgey.setStatusFramePeriod(PigeonIMU_StatusFrame.CondStatus_9_SixDeg_YPR, 5, timeoutMs);
-
-        rightMaster.selectProfileSlot(SLOT_DISTANCE, PID_PRIMARY);
-        rightMaster.selectProfileSlot(SLOT_TURNING, PID_TURN);
 
         zeroSensors();
         zeroDistance();
@@ -277,6 +282,14 @@ public class Drivetrain extends SubsystemBase {
          * the real-world value
          */
         masterConfig.primaryPID.selectedFeedbackCoefficient = 0.5;
+    }
+
+    /**
+     * Stop this subsystem
+     */
+    public void stop() {
+        rightMaster.set(TalonFXControlMode.PercentOutput, 0);
+        leftMaster.set(TalonFXControlMode.PercentOutput, 0);
     }
 
     /**
