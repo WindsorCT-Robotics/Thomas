@@ -13,6 +13,7 @@ public class Rotate extends CommandBase {
     public Rotate(DoubleSupplier joystickX) {
         this.joystickX = joystickX;
         drivetrain = Drivetrain.getInstance();
+        addRequirements(drivetrain);
 
     }
 

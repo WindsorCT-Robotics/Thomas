@@ -1,13 +1,14 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.sensors.WPI_Pigeon2;
-
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Mathematics.MotorPower;
 
 public class Drivetrain extends SubsystemBase {
     // Motors
@@ -19,30 +20,6 @@ public class Drivetrain extends SubsystemBase {
     // Motor directions
     private final TalonFXInvertType leftInvert = TalonFXInvertType.CounterClockwise;
     private final TalonFXInvertType rightInvert = TalonFXInvertType.Clockwise;
-
-    // Gyroscope
-    private final WPI_Pigeon2 pidgey;
-
-    // PID turn precision
-    private final double turnToleranceDegrees = 3.0;
-    // Max turn speed (degrees per second)
-    private final double maxTurnRateDegrees = 100.0;
-
-    private final PIDController pidController;
-
-    // Timeout ms for sensors
-    private final int timeoutMs = 30;
-
-    // Control variables
-    private double speed = 0.0;
-    private boolean positionLock = false;
-    private boolean antiDrift = false;
-
-    private double targetHeading = 0.0;
-    private double actualHeading;
-    private boolean rotationLock = false;
-
-    private static Drivetrain drive;
 
     /**
      * Convenience method for initializing motors
@@ -66,72 +43,28 @@ public class Drivetrain extends SubsystemBase {
 
         // Set master and follower motors
         leftFollower.follow(leftMaster);
+        leftFollower.setInverted(InvertType.FollowMaster);
         rightFollower.follow(rightMaster);
+        rightFollower.setInverted(InvertType.FollowMaster);
 
         // Set motor turn directions
         leftMaster.setInverted(leftInvert);
         rightMaster.setInverted(rightInvert);
 
-        // Initialize Pigeon 2.0, a 9-axis combined accelerometer, gyroscope, and
-        // magnetometer
-        pidgey = new WPI_Pigeon2(20);
-        pidgey.configFactoryDefault();
-
-        // Initialize PID controller
-        pidController = new PIDController(0, 0, 0);
-        pidController.setTolerance(turnToleranceDegrees, maxTurnRateDegrees);
-        pidController.enableContinuousInput(-180, 180);
-        pidController.reset();
-
-        addChild("PID Controller", pidController);
-
         stop();
-        zeroSensors();
-        zeroDistance();
-
-    }
-
-    /**
-     * Get the drivetrain instance
-     * 
-     * @return drivetrain instance
-     */
-    public static synchronized Drivetrain getInstance() {
-        if (drive == null) {
-            drive = new Drivetrain();
-        }
-        return drive;
     }
 
     @Override
     public void periodic() {
-        actualHeading = Math.IEEEremainder(pidgey.getYaw(), 360);
-        // Heading is between 0 and 360 degrees
+        SmartDashboard.updateValues();
 
-        pidController.setSetpoint(1 / targetHeading);
-        double controllerAdjustment =  1 / pidController.calculate(actualHeading);
+        // leftMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed +
+        // controllerAdjustment : speed);
+        // rightMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed -
+        // controllerAdjustment : speed);
+        SmartDashboard.putNumber("Left Motor Power",  leftMaster.getMotorOutputPercent()  * 100);
+        SmartDashboard.putNumber("Right Motor Power", rightMaster.getMotorOutputPercent() * 100);
 
-        leftMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed : speed + controllerAdjustment);
-        rightMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed : speed - controllerAdjustment);
-
-    }
-
-    /**
-     * Zeroes all drivetrain sensors
-     */
-    public void zeroSensors() {
-        leftMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
-        rightMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
-        pidgey.setYaw(0, timeoutMs);
-        pidgey.setAccumZAngle(0, timeoutMs);
-    }
-
-    /**
-     * Zeroes encoder distance
-     */
-    private void zeroDistance() {
-        leftMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
-        rightMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
     }
 
     /**
@@ -153,109 +86,37 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Get position lock status
-     * The position lock should lock the robot in place
-     * This feature is intended for the Rotate command
+     * Get the current motor power for the left motor in percentage from [0.0 to 1.0]
      * 
-     * @return Position lock status
+     * @return Current left motor power
      */
-    public boolean isPositionLock() {
-        return positionLock;
+    public MotorPower getLeftMotorPower() {
+        return new MotorPower(leftMaster.getMotorOutputPercent());
     }
 
     /**
-     * Turn the position lock on/off
-     * The position lock should lock the robot in place
-     * This feature is intended for the Rotate command
+     * Get the current motor power for the Right motor in percentage from [0.0 to 1.0]
      * 
-     * @param positionLock
+     * @return Current right motor power
      */
-    public void setPositionLock(boolean positionLock) {
-        this.positionLock = positionLock;
+    public MotorPower getRightMotorPower() {
+        return new MotorPower(rightMaster.getMotorOutputPercent());
     }
 
     /**
-     * Get rotation lock status
-     * The rotation lock should close the loop on heading
-     * 
-     * @return Rotation lock status
+     * Set the current motor power for the left motor in percentage from [0.0 to 1.0]
+     * @param power New Target Motor Power
      */
-    public boolean isRotationLock() {
-        return rotationLock;
+    public void setLeftMotorPower(MotorPower power) {
+        leftMaster.set(ControlMode.PercentOutput, power.getValue());
     }
 
     /**
-     * Turn rotation lock on/off
-     * The rotation lock should close the loop on heading
-     * 
-     * @param rotationLock rotation lock on/off
+     * Set the current motor power for the Right motor in percentage from [0.0 to 1.0]
+     * @param power New Target Motor Power
      */
-    public void setRotationLock(boolean rotationLock) {
-        this.rotationLock = rotationLock;
+    public void setRightMotorPower(MotorPower power) {
+        rightMaster.set(ControlMode.PercentOutput, power.getValue());
     }
 
-    /**
-     * Get anti-drift status
-     * The anti-drift system uses the strafe wheel to prevent drifting on turns
-     * 
-     * @return Anti-drift status
-     */
-    public boolean isAntiDrift() {
-        return antiDrift;
-    }
-
-    /**
-     * Turn anti-drift system on/off
-     * The anti-drift system uses the strafe wheel to prevent drifting on turns
-     * 
-     * @param antiDrift anti-drift on/off
-     */
-    public void setAntiDrift(boolean antiDrift) {
-        this.antiDrift = antiDrift;
-    }
-
-    /**
-     * Get the current absolute heading in degrees
-     * 
-     * @return the current absolute heading in degrees
-     */
-    public double getTargetHeading() {
-        return targetHeading;
-    }
-
-    /**
-     * Set the target robot absolute heading in degrees
-     * 
-     * @param targetHeading target absolute heading
-     */
-    public void setTargetHeading(double targetHeading) {
-        this.targetHeading = targetHeading;
-    }
-
-    /**
-     * Get the robot's actual heading (in degrees) from the Pigeon 2.0
-     * 
-     * @return actual robot heading
-     */
-    public double getActualHeading() {
-        return actualHeading;
-    }
-
-    /**
-     * Get the current speed in m/s
-     * 
-     * @return Current speed in m/s
-     */
-    public double getSpeed() {
-        return speed;
-    }
-
-    /**
-     * Set the target robot speed in m/s
-     * 
-     * @param speed Target robot speed in m/s
-     */
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
 }

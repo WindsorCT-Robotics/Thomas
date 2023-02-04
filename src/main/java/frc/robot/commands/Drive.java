@@ -1,35 +1,42 @@
 package frc.robot.commands;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.NineAxis;
 
 public class Drive extends CommandBase {
-    private DoubleSupplier joystickX;
-    private DoubleSupplier joystickY;
+    private final DoubleSupplier joystickX;
+    private final DoubleSupplier joystickY;
 
-    private Drivetrain drivetrain;
+    private final Drivetrain drivetrain;
+    private final NineAxis nineAxis;
 
-    public Drive(DoubleSupplier joystickX, DoubleSupplier joystickY) {
+    public Drive(Drivetrain drivetrain, NineAxis nineAxis, DoubleSupplier joystickX, DoubleSupplier joystickY) {
         this.joystickX = joystickX;
         this.joystickY = joystickY;
+        this.drivetrain = drivetrain;
+        this.nineAxis = nineAxis;
+    }
 
-        drivetrain = Drivetrain.getInstance();
-        addRequirements(drivetrain);
-
+    @Override
+    public Set<Subsystem> getRequirements() {
+        HashSet<Subsystem> requirements = new HashSet<>();
+        requirements.add(drivetrain);
+        return requirements;
     }
 
     @Override
     public void initialize() {
-        drivetrain.setPositionLock(false);
     }
 
     @Override
     public void execute() {
-        double acceleration = joystickY.getAsDouble();
-        double speed = drivetrain.getSpeed();
-        drivetrain.setSpeed(speed + acceleration);
+        double speed = joystickY.getAsDouble() * 0.8;
+        drivetrain.setSpeed(speed);
         final double degreesPerSecond = 90; // adjust to change curve speed
 
         double turnStrength = joystickX.getAsDouble();

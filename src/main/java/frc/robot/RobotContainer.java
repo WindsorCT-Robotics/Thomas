@@ -18,19 +18,20 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
   public final Drivetrain drive = Drivetrain.getInstance();
   private final CommandXboxController driveController = new CommandXboxController(0);
-  private final double deadzone = 0.1;
+  private final double deadzone = 0.3;
 
   public RobotContainer() {
     configureBindings();
     drive.setDefaultCommand(
         // If we're not moving, rotate. Otherwise, drive
-        new ConditionalCommand(
-            new Rotate(
-                () -> applyJoystickDeadzone(driveController.getRightX(), deadzone)),
-            new Drive(
-                () -> applyJoystickDeadzone(driveController.getRightX(), deadzone),
-                () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone)),
-            () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone) == 0));
+        // new ConditionalCommand(
+        //     new Rotate(
+        //         () -> applyJoystickDeadzone(driveController.getRightX(), deadzone)),
+        //     new Drive(
+        //         () -> applyJoystickDeadzone(driveController.getRightX(), deadzone),
+        //         () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone)),
+        //     () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone) == 0)
+        new Rotate(() -> applyJoystickDeadzone(driveController.getRightX(), deadzone)));
   }
 
   private void configureBindings() {
