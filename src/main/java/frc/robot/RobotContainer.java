@@ -4,17 +4,20 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.Drive;
 import frc.robot.commands.Rotate;
+import frc.robot.commands.RotateToHeading;
+import frc.robot.commands.ZeroDriveSensors;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
   public final Drivetrain drive = Drivetrain.getInstance();
-  private final XboxController driveController = new XboxController(0);
+  private final CommandXboxController driveController = new CommandXboxController(0);
   private final double deadzone = 0.1;
 
   public RobotContainer() {
@@ -30,6 +33,10 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    Trigger zeroSensorsButton = driveController.a();
+    zeroSensorsButton.onTrue(new ZeroDriveSensors());
+    Trigger zeroHeadingButton = driveController.b();
+    zeroHeadingButton.onTrue(new RotateToHeading(0));
   }
 
   public Command getAutonomousCommand() {

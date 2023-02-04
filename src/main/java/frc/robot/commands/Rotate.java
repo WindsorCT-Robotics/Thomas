@@ -25,8 +25,8 @@ public class Rotate extends CommandBase {
     public void execute() {
         double turnStrength = joystickX.getAsDouble();
         double rotation = Math.abs(turnStrength) * turnStrength * turnSpeedScale;
-        double heading = drivetrain.getAbsoluteHeading();
-        drivetrain.setAbsoluteHeading(heading + rotation);
+        double heading = drivetrain.getTargetHeading();
+        drivetrain.setTargetHeading(heading + rotation);
     }
 
     @Override

@@ -54,7 +54,7 @@ public class Drivetrain extends SubsystemBase {
     private boolean positionLock = false;
     private boolean antiDrift = false;
 
-    private double absoluteHeading = 0.0;
+    private double targetHeading = 0.0;
     private boolean rotationLock = false;
 
     private static Drivetrain drive;
@@ -185,18 +185,15 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double targetAngle = absoluteHeading;
+        double target= targetHeading;
         double targetSensorUnits = speed * 2048 * 6;
-
-        rightMaster.set(ControlMode.MotionMagic, targetSensorUnits, DemandType.AuxPID, targetAngle);
-        leftMaster.follow(rightMaster, FollowerType.AuxOutput1);
 
     }
 
     /**
      * Zeroes all drivetrain sensors
      */
-    private void zeroSensors() {
+    public void zeroSensors() {
         leftMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
         rightMaster.getSensorCollection().setIntegratedSensorPosition(0, timeoutMs);
         pidgey.setYaw(0, timeoutMs);
@@ -249,9 +246,9 @@ public class Drivetrain extends SubsystemBase {
              * Will a sensor sum or difference give us a positive total magnitude?
              * Remember the Master is one side of your drivetrain distance and
              * Auxiliary is the other side's distance.
-             * Phase | Term 0 | Term 1 | Result
-             * Sum: -((-)Master + (+)Aux )| NOT OK, will cancel each other out
-             * Diff: -((-)Master - (+)Aux )| OK - This is what we want, magnitude will be
+             * Phase | Term 0      | Term 1 | Result
+             * Sum:   -((-)Master + (+)Aux )| NOT OK, will cancel each other out
+             * Diff:  -((-)Master - (+)Aux )| OK - This is what we want, magnitude will be
              * correct and positive.
              * Diff: -((+)Aux - (-)Master)| NOT OK, magnitude will be correct but negative
              */
@@ -356,17 +353,17 @@ public class Drivetrain extends SubsystemBase {
      * 
      * @return the current absolute heading in degrees
      */
-    public double getAbsoluteHeading() {
-        return absoluteHeading;
+    public double getTargetHeading() {
+        return targetHeading;
     }
 
     /**
-     * Set the target robot absolute heading
+     * Set the target robot absolute heading in degrees
      * 
-     * @param absoluteHeading
+     * @param targetHeading target absolute heading
      */
-    public void setAbsoluteHeading(double absoluteHeading) {
-        this.absoluteHeading = absoluteHeading;
+    public void setTargetHeading(double targetHeading) {
+        this.targetHeading = targetHeading;
     }
 
     /**

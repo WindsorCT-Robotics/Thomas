@@ -33,9 +33,9 @@ public class Drive extends CommandBase {
         final double degreesPerSecond = 90; // adjust to change curve speed
 
         double turnStrength = joystickX.getAsDouble();
-        double heading = drivetrain.getAbsoluteHeading();
+        double heading = drivetrain.getTargetHeading();
         double rotation = (turnStrength * degreesPerSecond) / speed; // the faster we go, the slower we turn
-        drivetrain.setAbsoluteHeading(heading + rotation);
+        drivetrain.setTargetHeading(heading + rotation);
 
     }
 
