@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
@@ -22,21 +23,15 @@ public class Drivetrain extends SubsystemBase {
     // Gyroscope
     private final WPI_Pigeon2 pidgey;
 
-    // Neutral deadband
-    private final double neutralDeadband = .001;
+    // PID turn precision
+    private final double turnToleranceDegrees = 3.0;
+    // Max turn speed (degrees per second)
+    private final double maxTurnRateDegrees = 100.0;
+
+    private final PIDController pidController;
 
     // Timeout ms for sensors
     private final int timeoutMs = 30;
-
-    // Named hardware slots
-    private final static int SLOT_DISTANCE = 0;
-    private final static int SLOT_TURNING = 1;
-
-    // We allow either a 0 or 1 when selecting a PID Index, where 0 is primary and 1
-    // is auxiliary
-    private final static int PID_PRIMARY = 0;
-    private final static int PID_TURN = 1;
-    private final static double PIGEON_UNITS_PER_ROTATION = 8192;
 
     // Control variables
     private double speed = 0.0;
@@ -44,6 +39,7 @@ public class Drivetrain extends SubsystemBase {
     private boolean antiDrift = false;
 
     private double targetHeading = 0.0;
+    private double actualHeading;
     private boolean rotationLock = false;
 
     private static Drivetrain drive;
@@ -81,6 +77,14 @@ public class Drivetrain extends SubsystemBase {
         pidgey = new WPI_Pigeon2(20);
         pidgey.configFactoryDefault();
 
+        // Initialize PID controller
+        pidController = new PIDController(0, 0, 0);
+        pidController.setTolerance(turnToleranceDegrees, maxTurnRateDegrees);
+        pidController.enableContinuousInput(-180, 180);
+        pidController.reset();
+
+        addChild("PID Controller", pidController);
+
         stop();
         zeroSensors();
         zeroDistance();
@@ -101,9 +105,14 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double target = targetHeading;
-        double actualHeading = pidgey.getYaw() * (360 / PIGEON_UNITS_PER_ROTATION);
-        double targetSensorUnits = speed * 2048 * 6;
+        actualHeading = Math.IEEEremainder(pidgey.getYaw(), 360);
+        // Heading is between 0 and 360 degrees
+
+        pidController.setSetpoint(1 / targetHeading);
+        double controllerAdjustment =  1 / pidController.calculate(actualHeading);
+
+        leftMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed : speed + controllerAdjustment);
+        rightMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed : speed - controllerAdjustment);
 
     }
 
@@ -221,6 +230,15 @@ public class Drivetrain extends SubsystemBase {
      */
     public void setTargetHeading(double targetHeading) {
         this.targetHeading = targetHeading;
+    }
+
+    /**
+     * Get the robot's actual heading (in degrees) from the Pigeon 2.0
+     * 
+     * @return actual robot heading
+     */
+    public double getActualHeading() {
+        return actualHeading;
     }
 
     /**

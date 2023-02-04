@@ -40,11 +40,6 @@ public class Drive extends CommandBase {
     }
 
     @Override
-    public void end(boolean interrupted) {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public boolean isFinished() {
         return false;
     }
