@@ -33,6 +33,11 @@ public class Drivetrain extends SubsystemBase {
 
         return motor;
     }
+    
+    private static void setFollower(WPI_TalonFX leader, WPI_TalonFX follower) {
+        follower.follow(leader);
+        follower.setInverted(InvertType.FollowMaster);
+    }
 
     public Drivetrain() {
         // Initialize motors
@@ -42,10 +47,8 @@ public class Drivetrain extends SubsystemBase {
         rightFollower = initMotor(4);
 
         // Set master and follower motors
-        leftFollower.follow(leftMaster);
-        leftFollower.setInverted(InvertType.FollowMaster);
-        rightFollower.follow(rightMaster);
-        rightFollower.setInverted(InvertType.FollowMaster);
+        setFollower(leftMaster, leftFollower);
+        setFollower(rightMaster, rightFollower);
 
         // Set motor turn directions
         leftMaster.setInverted(leftInvert);
@@ -72,7 +75,7 @@ public class Drivetrain extends SubsystemBase {
      */
     public void stop() {
         rightMaster.set(TalonFXControlMode.PercentOutput, 0);
-        leftMaster.set(TalonFXControlMode.PercentOutput, 0);
+        leftMaster.set (TalonFXControlMode.PercentOutput, 0);
     }
 
     /**
