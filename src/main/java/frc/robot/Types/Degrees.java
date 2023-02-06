@@ -1,4 +1,4 @@
-package frc.robot.Mathematics;
+package frc.robot.Types;
 
 public class Degrees {
     // TODO: Determine min and max for degrees if possible
@@ -37,5 +37,10 @@ public class Degrees {
         if (Double.doubleToLongBits(raw) != Double.doubleToLongBits(other.raw))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return Double.toString(raw);
     }
 }

@@ -1,4 +1,4 @@
-package frc.robot.Mathematics;
+package frc.robot.Types;
 
 import frc.robot.Exceptions.ValueConstraintException;
 
@@ -21,6 +21,14 @@ public class MotorPower {
 
     public double getValue() {
         return raw;
+    }
+
+    public static MotorPower add (MotorPower lvalue, double rvalue) {
+        return new MotorPower(lvalue.raw + rvalue);
+    }
+
+    public static MotorPower add (MotorPower lvalue, MotorPower rvalue) {
+        return new MotorPower(lvalue.raw + rvalue.raw);
     }
 
     @Override

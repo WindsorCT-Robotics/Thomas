@@ -1,0 +1,74 @@
+package frc.robot.Types;
+
+public class PID {
+    private double proportional;
+    private double integral;
+    private double derivative;
+
+    public PID (double proportinal, double integral, double derivative) {
+        this.proportional = proportinal;
+        this.integral = integral;
+        this.derivative = derivative;
+    }
+
+    public void setP (double p) {
+        proportional = p;
+    }
+
+    public void setI (double i) {
+        integral = i;
+    }
+
+    public void setD (double d) {
+        derivative = d;
+    }
+
+    public double getP () {
+        return proportional;
+    }
+
+    public double getI () {
+        return integral;
+    }
+
+    public double getD () {
+        return derivative;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        long temp;
+        temp = Double.doubleToLongBits(proportional);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(integral);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(derivative);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PID other = (PID) obj;
+        if (Double.doubleToLongBits(proportional) != Double.doubleToLongBits(other.proportional))
+            return false;
+        if (Double.doubleToLongBits(integral) != Double.doubleToLongBits(other.integral))
+            return false;
+        if (Double.doubleToLongBits(derivative) != Double.doubleToLongBits(other.derivative))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "PID [proportional=" + proportional + ", integral=" + integral + ", derivative=" + derivative + "]";
+    }
+}
