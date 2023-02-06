@@ -24,7 +24,12 @@ public class RobotContainer {
   public RobotContainer() {
     double controllerDeadzonePercent = 0.3;
 
-    drive = new Drivetrain();
+    drive = new Drivetrain(
+        Drivetrain.initMotor(1),
+        Drivetrain.initMotor(2),
+        Drivetrain.initMotor(3),
+        Drivetrain.initMotor(4)
+    );
 
     driveController = new CommandXboxController(0);
 

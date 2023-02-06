@@ -13,9 +13,7 @@ import frc.robot.Types.MotorPower;
 public class Drivetrain extends SubsystemBase {
     // Motors
     private final WPI_TalonFX leftMaster;
-    private final WPI_TalonFX leftFollower;
     private final WPI_TalonFX rightMaster;
-    private final WPI_TalonFX rightFollower;
 
     // Motor directions
     private final TalonFXInvertType leftInvert = TalonFXInvertType.CounterClockwise;
@@ -27,7 +25,7 @@ public class Drivetrain extends SubsystemBase {
      * @param deviceNumber CAN ID of motor
      * @return The configured motor
      */
-    private static WPI_TalonFX initMotor(int deviceNumber) {
+    public static WPI_TalonFX initMotor(int deviceNumber) {
         WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
         motor.configFactoryDefault();
 
@@ -39,12 +37,13 @@ public class Drivetrain extends SubsystemBase {
         follower.setInverted(InvertType.FollowMaster);
     }
 
-    public Drivetrain() {
+    /**
+     * Create a new drivetrain control subsystem.
+     */
+    public Drivetrain(WPI_TalonFX leftLeader, WPI_TalonFX leftFollower, WPI_TalonFX rightLeader, WPI_TalonFX rightFollower) {
         // Initialize motors
-        leftMaster = initMotor(1);
-        leftFollower = initMotor(2);
-        rightMaster = initMotor(3);
-        rightFollower = initMotor(4);
+        leftMaster = leftLeader;
+        rightMaster = rightLeader;
 
         // Set master and follower motors
         setFollower(leftMaster, leftFollower);
