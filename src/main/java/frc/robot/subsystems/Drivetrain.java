@@ -61,10 +61,6 @@ public class Drivetrain extends SubsystemBase {
     public void periodic() {
         SmartDashboard.updateValues();
 
-        // leftMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed +
-        // controllerAdjustment : speed);
-        // rightMaster.set(TalonFXControlMode.PercentOutput, rotationLock ? speed -
-        // controllerAdjustment : speed);
         SmartDashboard.putNumber("Left Motor Power",  leftMaster.getMotorOutputPercent()  * 100);
         SmartDashboard.putNumber("Right Motor Power", rightMaster.getMotorOutputPercent() * 100);
 
