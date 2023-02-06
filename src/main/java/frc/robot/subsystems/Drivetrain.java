@@ -10,6 +10,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Types.MotorPower;
 
+/**
+ * This subsystem controls four motors; two on each side of the robot.
+ * 
+ * One motor on each side will be the Leader and the other the Follower.
+ * 
+ * The Left follower will not be inverted; the right motor will.
+ */
 public class Drivetrain extends SubsystemBase {
     // Motors
     private final WPI_TalonFX leftMaster;
@@ -66,7 +73,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Stop this subsystem
+     * Stop driving the robot.
      */
     public void stop() {
         rightMaster.set(TalonFXControlMode.PercentOutput, 0);
@@ -84,7 +91,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Get the current motor power for the left motor in percentage from [0.0 to 1.0]
+     * Get the current motor power for the left motor in percentage from [-1.0 to 1.0]
      * 
      * @return Current left motor power
      */
@@ -93,7 +100,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Get the current motor power for the Right motor in percentage from [0.0 to 1.0]
+     * Get the current motor power for the Right motor in percentage from [-1.0 to 1.0]
      * 
      * @return Current right motor power
      */
@@ -102,7 +109,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Set the current motor power for the left motor in percentage from [0.0 to 1.0]
+     * Set the current motor power for the left motor in percentage from [-1.0 to 1.0]
      * @param power New Target Motor Power
      */
     public void setLeftMotorPower(MotorPower power) {
@@ -110,13 +117,18 @@ public class Drivetrain extends SubsystemBase {
     }
 
     /**
-     * Set the current motor power for the Right motor in percentage from [0.0 to 1.0]
+     * Set the current motor power for the Right motor in percentage from [-1.0 to 1.0]
      * @param power New Target Motor Power
      */
     public void setRightMotorPower(MotorPower power) {
         rightMaster.set(ControlMode.PercentOutput, power.getValue());
     }
 
+    /** 
+     * Set the motor power in percentage from [-1.0 to 1.0] for both motors at once.
+     * @param leftMotorPower New target motor power for left motor.
+     * @param rightMotorPower New targe motor power for right motor.
+     */
     public void setMotorPower (MotorPower leftMotorPower, MotorPower righMotorPower) {
         setLeftMotorPower (leftMotorPower);
         setRightMotorPower(righMotorPower);
