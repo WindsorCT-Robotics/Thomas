@@ -4,15 +4,15 @@
 
 package frc.robot;
 
+import java.util.function.DoubleSupplier;
+
+import com.ctre.phoenix.sensors.WPI_Pigeon2;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.Drive;
-import frc.robot.commands.Rotate;
-import frc.robot.commands.RotateToHeading;
-import frc.robot.commands.ZeroDriveSensors;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -45,17 +45,20 @@ public class RobotContainer {
     return Commands.print("No autonomous command configured");
   }
 
-  private static double applyJoystickDeadzone(double rawValue, double deadzone) {
-    double result;
-    double validRange = 1 - deadzone;
-    double value = Math.abs(rawValue);
+    private static DoubleSupplier deadzoneModifier(DoubleSupplier rawValueSupplier, double deadzone) {
+        return () -> {
+            double rawValue = rawValueSupplier.getAsDouble();
+            double result;
+            double validRange = 1 - deadzone;
+            double value = Math.abs(rawValue);
 
-    if (value > deadzone) {
-      result = (value - deadzone) / validRange;
-    } else {
-      result = 0;
+            if (value > deadzone) {
+                result = (value - deadzone) / validRange;
+            } else {
+                result = 0;
+            }
+
+            return rawValue < 0 ? -result : result;
+        };
     }
-
-    return rawValue < 0 ? -result : result;
-  }
 }
