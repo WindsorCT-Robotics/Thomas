@@ -3,23 +3,23 @@ package frc.robot.commands;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Types.MotorPower;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.NineAxis;
 
 public class Drive extends CommandBase {
-    private final DoubleSupplier joystickX;
-    private final DoubleSupplier joystickY;
+    private final DoubleSupplier move;
+    private final DoubleSupplier rotate;
 
     private final Drivetrain drivetrain;
-    private final NineAxis nineAxis;
 
-    public Drive(Drivetrain drivetrain, NineAxis nineAxis, DoubleSupplier joystickX, DoubleSupplier joystickY) {
-        this.joystickX = joystickX;
-        this.joystickY = joystickY;
+    public Drive(Drivetrain drivetrain, DoubleSupplier rotate, DoubleSupplier move) {
+        this.rotate = rotate;
+        this.move = move;
         this.drivetrain = drivetrain;
-        this.nineAxis = nineAxis;
     }
 
     @Override
@@ -35,15 +35,33 @@ public class Drive extends CommandBase {
 
     @Override
     public void execute() {
-        double speed = joystickY.getAsDouble() * 0.8;
-        drivetrain.setSpeed(speed);
-        final double degreesPerSecond = 90; // adjust to change curve speed
+        Pair<MotorPower, MotorPower> motorPower = turn();
+        drivetrain.setMotorPower(motorPower.getFirst(), motorPower.getSecond());
+    }
 
-        double turnStrength = joystickX.getAsDouble();
-        double heading = drivetrain.getTargetHeading();
-        double rotation = (turnStrength * degreesPerSecond) / speed; // the faster we go, the slower we turn
-        drivetrain.setTargetHeading(heading + rotation);
+    private Pair<MotorPower, MotorPower> turn () {
+        Pair<MotorPower, MotorPower> motorPower =
+            new Pair<MotorPower,MotorPower>(
+                new MotorPower(move.getAsDouble()),
+                new MotorPower(move.getAsDouble()));
+        Double rotation = rotate.getAsDouble();
+        boolean isTurningRight = rotation > 0.0d;
+        boolean isTurningLeft = rotation < 0.0d;
+        
+        if (isTurningLeft) {
+            motorPower = new Pair<MotorPower,MotorPower>(
+                motorPower.getFirst(),
+                MotorPower.add(motorPower.getSecond(), -rotation)
+            );
+        }
+        else if (isTurningRight) {
+            motorPower = new Pair<MotorPower, MotorPower>(
+                MotorPower.add(motorPower.getFirst(), -rotation),
+                motorPower.getSecond()
+            );
+        }
 
+        return motorPower;
     }
 
     @Override
