@@ -8,7 +8,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Mathematics.MotorPower;
+import frc.robot.Types.MotorPower;
 
 public class Drivetrain extends SubsystemBase {
     // Motors
@@ -119,4 +119,8 @@ public class Drivetrain extends SubsystemBase {
         rightMaster.set(ControlMode.PercentOutput, power.getValue());
     }
 
+    public void setMotorPower (MotorPower leftMotorPower, MotorPower righMotorPower) {
+        setLeftMotorPower (leftMotorPower);
+        setRightMotorPower(righMotorPower);
+    }
 }
