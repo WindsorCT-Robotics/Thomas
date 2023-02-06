@@ -11,39 +11,43 @@ import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Types.Milliseconds;
 import frc.robot.commands.Drive;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.NineAxis;
 
 public class RobotContainer {
-  public final Drivetrain drive = Drivetrain.getInstance();
-  private final CommandXboxController driveController = new CommandXboxController(0);
-  private final double deadzone = 0.3;
+    private final Drivetrain drive;
+    private final CommandXboxController driveController;
+    private final NineAxis pidgey;
 
   public RobotContainer() {
+    double controllerDeadzonePercent = 0.3;
+
+    drive = new Drivetrain();
+
+    driveController = new CommandXboxController(0);
+
+    pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
+
+    Drive driveCommand = new Drive(
+        drive,
+        deadzoneModifier(() -> driveController.getRightX(), controllerDeadzonePercent),
+        deadzoneModifier(() -> driveController.getLeftY(),  controllerDeadzonePercent));
+
     configureBindings();
+
     drive.setDefaultCommand(
-        // If we're not moving, rotate. Otherwise, drive
-        // new ConditionalCommand(
-        //     new Rotate(
-        //         () -> applyJoystickDeadzone(driveController.getRightX(), deadzone)),
-        //     new Drive(
-        //         () -> applyJoystickDeadzone(driveController.getRightX(), deadzone),
-        //         () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone)),
-        //     () -> applyJoystickDeadzone(driveController.getLeftY(), deadzone) == 0)
-        new Rotate(() -> applyJoystickDeadzone(driveController.getRightX(), deadzone)));
+        driveCommand);
+        
   }
 
-  private void configureBindings() {
-    Trigger zeroSensorsButton = driveController.a();
-    zeroSensorsButton.onTrue(new ZeroDriveSensors());
-    Trigger zeroHeadingButton = driveController.b();
-    zeroHeadingButton.onTrue(new RotateToHeading(0));
-  }
+    private void configureBindings() {
+    }
 
-  public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
-  }
+    public Command getAutonomousCommand() {
+        return Commands.print("No autonomous command configured");
+    }
 
     private static DoubleSupplier deadzoneModifier(DoubleSupplier rawValueSupplier, double deadzone) {
         return () -> {
