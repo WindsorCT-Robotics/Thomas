@@ -48,23 +48,27 @@ public class PID {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
+    
+    public boolean equals(PID other) {
+        return
+            Double.doubleToLongBits(proportional) == Double.doubleToLongBits(other.proportional)
+            && Double.doubleToLongBits(integral) == Double.doubleToLongBits(other.integral)
+            && Double.doubleToLongBits(derivative) == Double.doubleToLongBits(other.derivative);
+    }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
+
         if (obj == null)
             return false;
+
         if (getClass() != obj.getClass())
             return false;
+            
         PID other = (PID) obj;
-        if (Double.doubleToLongBits(proportional) != Double.doubleToLongBits(other.proportional))
-            return false;
-        if (Double.doubleToLongBits(integral) != Double.doubleToLongBits(other.integral))
-            return false;
-        if (Double.doubleToLongBits(derivative) != Double.doubleToLongBits(other.derivative))
-            return false;
-        return true;
+        return equals(other);
     }
 
     @Override

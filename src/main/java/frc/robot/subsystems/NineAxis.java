@@ -3,8 +3,8 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Exceptions.PigeonInitializationException;
-import frc.robot.Types.Degrees;
 import frc.robot.Types.Milliseconds;
 
 public class NineAxis {
@@ -29,7 +29,7 @@ public class NineAxis {
         pidgey.reset();
     }
 
-    public Degrees getYaw() {
-        return new Degrees(pidgey.getYaw());
+    public Rotation2d getYaw() {
+        return Rotation2d.fromDegrees(pidgey.getYaw());
     }
 }

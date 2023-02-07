@@ -17,23 +17,27 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.NineAxis;
 
 public class RobotContainer {
-    private final Drivetrain drive;
-    private final CommandXboxController driveController;
+    // Subsystems
     private final NineAxis pidgey;
+    private final Drivetrain drive;
+
+    // Controller
+    private final CommandXboxController driveController;
 
   public RobotContainer() {
     double controllerDeadzonePercent = 0.3;
+
+    pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
     drive = new Drivetrain(
         Drivetrain.initMotor(1),
         Drivetrain.initMotor(2),
         Drivetrain.initMotor(3),
-        Drivetrain.initMotor(4)
+        Drivetrain.initMotor(4),
+        pidgey
     );
 
     driveController = new CommandXboxController(0);
-
-    pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
     Drive driveCommand = new Drive(
         drive,
