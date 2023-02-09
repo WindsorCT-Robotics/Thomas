@@ -41,17 +41,16 @@ public class RobotContainer {
 
         driveController = new CommandXboxController(0);
 
-        // 3 millisecond rate limit for joystick smoothing; 1/3 of a second for a change of 1 meter/second
+        // 3 millisecond rate limit for joystick smoothing; 1/3 of a second for a change
+        // of 1 meter/second
         // TODO: placeholder value
         moveLimiter = new SlewRateLimiter(3);
         turnLimiter = new SlewRateLimiter(3);
 
         Drive driveCommand = new Drive(
                 drive,
-                deadzoneModifier(() -> driveController.getRightX(), controllerDeadzonePercent),
-                moveLimiter,
-                deadzoneModifier(() -> driveController.getLeftY(), controllerDeadzonePercent),
-                turnLimiter);
+                deadzoneModifier(() -> moveLimiter.calculate(driveController.getRightX()), controllerDeadzonePercent),
+                deadzoneModifier(() -> turnLimiter.calculate(driveController.getLeftY()), controllerDeadzonePercent));
 
         configureBindings();
 
