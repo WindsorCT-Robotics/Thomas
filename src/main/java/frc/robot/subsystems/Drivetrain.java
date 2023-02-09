@@ -9,7 +9,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -47,8 +46,8 @@ public class Drivetrain extends SubsystemBase {
     public static final int ENCODER_RESOLUTION = 2048;
 
     // Speed values
-    private static final MetersPerSecond MAX_SPEED = new MetersPerSecond(3.0); // TODO: placeholder value
-    private static final DegreesPerSecond MAX_ANGULAR_SPEED = new DegreesPerSecond(360); // TODO: placeholder value
+    public static final MetersPerSecond MAX_SPEED = new MetersPerSecond(3.0); // TODO: placeholder value
+    public static final DegreesPerSecond MAX_ANGULAR_SPEED = new DegreesPerSecond(360); // TODO: placeholder value
 
     // Motors
     private final WPI_TalonFX leftMaster;
@@ -56,8 +55,6 @@ public class Drivetrain extends SubsystemBase {
 
     // Nine-axis motion sensor
     private final NineAxis pidgey;
-
-    private final DifferentialDriveKinematics kinematics;
 
     private final DifferentialDriveOdometry odometry;
 
@@ -93,7 +90,8 @@ public class Drivetrain extends SubsystemBase {
      * Get the wheel's velocity in meters per second
      * 
      * @param encoderVelocity sensor units per 100 ms, as provided by
-     *                        {@link com.ctre.phoenix.motorcontrol.can.BaseMotorController#getSelectedSensorPosition()}
+     *                        {@link com.ctre.phoenix.motorcontrol.can.BaseMotorController#getSelectedSensorPosition()
+     *                        getSelectedSensorPosition}
      * @return Wheel velocity in meters per second
      */
     private static MetersPerSecond getEncoderVelocity(double encoderVelocity) {
@@ -124,9 +122,6 @@ public class Drivetrain extends SubsystemBase {
         // Feedforward gains
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
-        // Initialize kinematics
-        kinematics = new DifferentialDriveKinematics(TRACK_WIDTH.getMeters());
-
         // initialize odometry
         odometry = new DifferentialDriveOdometry(
                 pidgey.getYaw(), leftMaster.getSelectedSensorPosition(), rightMaster.getSelectedSensorPosition());
@@ -145,6 +140,11 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("Left Motor Power", leftMaster.getMotorOutputPercent() * 100);
         SmartDashboard.putNumber("Right Motor Power", rightMaster.getMotorOutputPercent() * 100);
 
+        SmartDashboard.putNumber("Left Motor Speed",
+                getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond());
+        SmartDashboard.putNumber("Right Motor Speed",
+                getEncoderVelocity(rightMaster.getSelectedSensorVelocity()).getMetersPerSecond());
+
     }
 
     /**
@@ -153,6 +153,14 @@ public class Drivetrain extends SubsystemBase {
     public void stop() {
         rightMaster.set(TalonFXControlMode.PercentOutput, 0);
         leftMaster.set(TalonFXControlMode.PercentOutput, 0);
+    }
+
+    /**
+     * Update field-relative position
+     */
+    public void updateOdometry() {
+        odometry.update(pidgey.getYaw(), getEncoderDistance(leftMaster.getSelectedSensorPosition()).getMeters(),
+                getEncoderDistance(rightMaster.getSelectedSensorPosition()).getMeters());
     }
 
     /**
@@ -215,4 +223,64 @@ public class Drivetrain extends SubsystemBase {
         setLeftMotorPower(leftMotorPower);
         setRightMotorPower(righMotorPower);
     }
+
+    /**
+     * Get the current motor speed in meters per second for the left motor
+     * 
+     * @return Current left motor speed
+     */
+    public MetersPerSecond getLeftMotorSpeed() {
+        return getEncoderVelocity(leftMaster.getSelectedSensorVelocity());
+    }
+
+    /**
+     * Get the current motor speed in meters per second for the right motor
+     * 
+     * @return Current right motor speed
+     */
+    public MetersPerSecond getRightMotorSpeed() {
+        return getEncoderVelocity(rightMaster.getSelectedSensorVelocity());
+    }
+
+    /**
+     * Set the current motor speed for the left motor in meters per second
+     * 
+     * @param speed New Target Motor Speed
+     */
+    public void setLeftMotorSpeed(MetersPerSecond speed) {
+        final double feedForward = feedforward.calculate(speed.getMetersPerSecond());
+
+        final MotorPower output = new MotorPower(lefPidController.calculate(
+                getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond(),
+                speed.getMetersPerSecond()));
+
+        leftMaster.set(ControlMode.PercentOutput, output.getValue() + feedForward);
+    }
+
+    /**
+     * Set the current motor speed for the right motor in meters per second
+     * 
+     * @param speed New Target Motor Speed
+     */
+    public void setRightMotorSpeed(MetersPerSecond speed) {
+        final double feedForward = feedforward.calculate(speed.getMetersPerSecond());
+
+        final MotorPower output = new MotorPower(rightPidController.calculate(
+                getEncoderVelocity(rightMaster.getSelectedSensorVelocity()).getMetersPerSecond(),
+                speed.getMetersPerSecond()));
+
+        rightMaster.set(ControlMode.PercentOutput, output.getValue() + feedForward);
+    }
+
+    /**
+     * Set the motor speed in meters per second
+     * 
+     * @param leftMotorSpeed  New target motor speed for left motor.
+     * @param rightMotorSpeed New targe motor speed for right motor.
+     */
+    public void setMotorSpeed(MetersPerSecond leftMotorSpeed, MetersPerSecond righMotorSpeed) {
+        setLeftMotorSpeed(leftMotorSpeed);
+        setRightMotorSpeed(righMotorSpeed);
+    }
+
 }

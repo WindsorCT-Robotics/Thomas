@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,33 +24,37 @@ public class RobotContainer {
 
     // Controller
     private final CommandXboxController driveController;
+    private final SlewRateLimiter moveLimiter;
+    private final SlewRateLimiter turnLimiter;
 
-  public RobotContainer() {
-    double controllerDeadzonePercent = 0.3;
+    public RobotContainer() {
+        double controllerDeadzonePercent = 0.3;
 
-    pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
+        pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
-    drive = new Drivetrain(
-        Drivetrain.initMotor(1),
-        Drivetrain.initMotor(2),
-        Drivetrain.initMotor(3),
-        Drivetrain.initMotor(4),
-        pidgey
-    );
+        drive = new Drivetrain(
+                Drivetrain.initMotor(1),
+                Drivetrain.initMotor(2),
+                Drivetrain.initMotor(3),
+                Drivetrain.initMotor(4),
+                pidgey);
 
-    driveController = new CommandXboxController(0);
+        driveController = new CommandXboxController(0);
+        moveLimiter = new SlewRateLimiter(3);
+        turnLimiter = new SlewRateLimiter(3);
 
-    Drive driveCommand = new Drive(
-        drive,
-        deadzoneModifier(() -> driveController.getRightX(), controllerDeadzonePercent),
-        deadzoneModifier(() -> driveController.getLeftY(),  controllerDeadzonePercent));
+        Drive driveCommand = new Drive(
+                drive,
+                deadzoneModifier(() -> driveController.getRightX(), controllerDeadzonePercent),
+                moveLimiter,
+                deadzoneModifier(() -> driveController.getLeftY(), controllerDeadzonePercent),
+                turnLimiter);
 
-    configureBindings();
+        configureBindings();
 
-    drive.setDefaultCommand(
-        driveCommand);
-        
-  }
+        drive.setDefaultCommand(driveCommand);
+
+    }
 
     private void configureBindings() {
     }
