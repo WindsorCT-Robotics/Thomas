@@ -49,6 +49,7 @@ public class RobotContainer {
 
         Drive driveCommand = new Drive(
                 drive,
+                pidgey,
                 deadzoneModifier(() -> moveLimiter.calculate(driveController.getRightX()), controllerDeadzonePercent),
                 deadzoneModifier(() -> turnLimiter.calculate(driveController.getLeftY()), controllerDeadzonePercent));
 

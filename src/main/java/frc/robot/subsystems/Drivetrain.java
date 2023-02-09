@@ -35,8 +35,8 @@ public class Drivetrain extends SubsystemBase {
     public static final Meters WHEEL_CIRCUMFERENCE = new Meters(2 * Math.PI * WHEEL_RADIUS.getMeters());
 
     // PID gains
-    public static final PID LEFT_GAINS = new PID(1, 0, 0);
-    public static final PID RIGHT_GAINS = new PID(1, 0, 0);
+    public static final PID LEFT_GAINS = new PID(1, 0, 0); // TODO: placeholder value
+    public static final PID RIGHT_GAINS = new PID(1, 0, 0); // TODO: placeholder value
 
     // Gear ratio
     public static final double GEAR_RATIO = 4 / 3; // TODO: placeholder value
