@@ -1,15 +1,15 @@
 package frc.robot.Types;
 
-public class DegreesPerSecond {
+public class RadiansPerSecond {
     private final double rawValue;
 
     /** Creates a new value in degrees per second */
-    public DegreesPerSecond(double value) {
+    public RadiansPerSecond(double value) {
         rawValue = value;
     }
 
     /** @return the value as a double */
-    public double getDegreesPerSecond() {
+    public double getRadiansPerSecond() {
         return rawValue;
     }
 
@@ -35,7 +35,7 @@ public class DegreesPerSecond {
         return equals(other);
     }
 
-    public boolean equals(DegreesPerSecond other) {
+    public boolean equals(RadiansPerSecond other) {
         return rawValue == other.rawValue;
     }
 

@@ -29,7 +29,11 @@ public class NineAxis {
         pidgey.reset();
     }
 
+    /**
+     * Get robot yaw as Rotation2d
+     * @return pigeon yaw
+     */
     public Rotation2d getYaw() {
-        return Rotation2d.fromDegrees(pidgey.getYaw());
+        return pidgey.getRotation2d();
     }
 }

@@ -51,7 +51,7 @@ public class Drive extends CommandBase {
                         moveLimiter.calculate(move.getAsDouble() * Drivetrain.MAX_SPEED.getMetersPerSecond()),
                         0, // our robot can't fly
                         turnLimiter.calculate(turn.getAsDouble())
-                                * Drivetrain.MAX_ANGULAR_SPEED.getDegreesPerSecond()));
+                                * Drivetrain.MAX_ANGULAR_SPEED.getRadiansPerSecond()));
         drivetrain.setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond),
                 new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
 

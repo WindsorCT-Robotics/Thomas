@@ -11,7 +11,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Types.DegreesPerSecond;
+import frc.robot.Types.RadiansPerSecond;
 import frc.robot.Types.Meters;
 import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.MotorPower;
@@ -46,14 +46,11 @@ public class Drivetrain extends SubsystemBase {
 
     // Speed values
     public static final MetersPerSecond MAX_SPEED = new MetersPerSecond(3.0); // TODO: placeholder value
-    public static final DegreesPerSecond MAX_ANGULAR_SPEED = new DegreesPerSecond(360); // TODO: placeholder value
+    public static final RadiansPerSecond MAX_ANGULAR_SPEED = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder value
 
     // Motors
     private final WPI_TalonFX leftMaster;
     private final WPI_TalonFX rightMaster;
-
-    // Nine-axis motion sensor
-    private final NineAxis pidgey;
 
     private final SimpleMotorFeedforward feedforward;
 
@@ -108,9 +105,6 @@ public class Drivetrain extends SubsystemBase {
         // Set motor turn directions
         leftMaster.setInverted(leftInvert);
         rightMaster.setInverted(rightInvert);
-
-        // Initialize Pigeon 2.0
-        pidgey = pigeon;
 
         // Feedforward gains
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
