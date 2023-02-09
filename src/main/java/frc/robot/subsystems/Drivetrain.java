@@ -3,8 +3,12 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.RemoteFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.FilterConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -67,6 +71,13 @@ public class Drivetrain extends SubsystemBase {
     public static WPI_TalonFX initMotor(int deviceNumber) {
         WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
         motor.configFactoryDefault();
+        motor.configSelectedFeedbackSensor(RemoteFeedbackDevice.RemoteSensor0);
+
+        FilterConfiguration filterConfig =  new FilterConfiguration();
+        filterConfig.remoteSensorSource = RemoteSensorSource.CANCoder;
+
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.remoteFilter0 = filterConfig;
 
         return motor;
     }
