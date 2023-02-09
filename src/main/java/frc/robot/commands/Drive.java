@@ -31,7 +31,7 @@ public class Drive extends CommandBase {
         PIDController turnController = new PIDController(pid.getP(), pid.getI(), pid.getD());
         turnController.reset();
         turnController.enableContinuousInput(minimumInput.getRadians(), maximumInput.getRadians());
-        
+
         return turnController;
     }
 
@@ -66,7 +66,8 @@ public class Drive extends CommandBase {
                 .toWheelSpeeds(new ChassisSpeeds(
                         move.getAsDouble() * Drivetrain.MAX_SPEED.getMetersPerSecond(),
                         0, // our robot can't fly
-                        turn.getAsDouble() * Drivetrain.MAX_ANGULAR_SPEED.getRadiansPerSecond() + turnAdjustment.getRadians()));
+                        turn.getAsDouble() * Drivetrain.MAX_ANGULAR_SPEED.getRadiansPerSecond()
+                                + turnAdjustment.getRadians()));
 
         drivetrain.setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond),
                 new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
