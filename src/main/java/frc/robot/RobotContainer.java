@@ -40,6 +40,9 @@ public class RobotContainer {
                 pidgey);
 
         driveController = new CommandXboxController(0);
+
+        // 3 millisecond rate limit for joystick smoothing; 1/3 of a second for a change of 1 meter/second
+        // TODO: placeholder value
         moveLimiter = new SlewRateLimiter(3);
         turnLimiter = new SlewRateLimiter(3);
 

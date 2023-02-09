@@ -9,7 +9,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Types.DegreesPerSecond;
@@ -56,8 +55,6 @@ public class Drivetrain extends SubsystemBase {
     // Nine-axis motion sensor
     private final NineAxis pidgey;
 
-    private final DifferentialDriveOdometry odometry;
-
     private final SimpleMotorFeedforward feedforward;
 
     // PID controllers
@@ -80,10 +77,6 @@ public class Drivetrain extends SubsystemBase {
     private static void setFollower(WPI_TalonFX leader, WPI_TalonFX follower) {
         follower.follow(leader);
         follower.setInverted(InvertType.FollowMaster);
-    }
-
-    private static Meters getEncoderDistance(double encoderDistance) {
-        return new Meters(WHEEL_CIRCUMFERENCE.getMeters() / encoderDistance * GEAR_RATIO);
     }
 
     /**
@@ -122,10 +115,6 @@ public class Drivetrain extends SubsystemBase {
         // Feedforward gains
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
-        // initialize odometry
-        odometry = new DifferentialDriveOdometry(
-                pidgey.getYaw(), leftMaster.getSelectedSensorPosition(), rightMaster.getSelectedSensorPosition());
-
         // initialize PID controllers
         lefPidController = new PIDController(LEFT_GAINS.getP(), LEFT_GAINS.getI(), LEFT_GAINS.getD());
         rightPidController = new PIDController(RIGHT_GAINS.getP(), RIGHT_GAINS.getI(), RIGHT_GAINS.getD());
@@ -153,14 +142,6 @@ public class Drivetrain extends SubsystemBase {
     public void stop() {
         rightMaster.set(TalonFXControlMode.PercentOutput, 0);
         leftMaster.set(TalonFXControlMode.PercentOutput, 0);
-    }
-
-    /**
-     * Update field-relative position
-     */
-    public void updateOdometry() {
-        odometry.update(pidgey.getYaw(), getEncoderDistance(leftMaster.getSelectedSensorPosition()).getMeters(),
-                getEncoderDistance(rightMaster.getSelectedSensorPosition()).getMeters());
     }
 
     /**
