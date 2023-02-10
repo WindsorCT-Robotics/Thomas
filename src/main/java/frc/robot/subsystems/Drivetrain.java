@@ -160,13 +160,11 @@ public class Drivetrain extends SubsystemBase {
      * Output telemetry data
      */
     private void doTelemetry() {
-        SmartDashboard.putNumber("Left Motor Power", leftMaster.getMotorOutputPercent() * 100);
-        SmartDashboard.putNumber("Right Motor Power", rightMaster.getMotorOutputPercent() * 100);
+        SmartDashboard.putNumber("Left Motor Power", getLeftMotorPower().getValue() * 100);
+        SmartDashboard.putNumber("Right Motor Power", getRightMotorPower().getValue() * 100);
 
-        SmartDashboard.putNumber("Left Motor Speed",
-                getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond());
-        SmartDashboard.putNumber("Right Motor Speed",
-                getEncoderVelocity(rightMaster.getSelectedSensorVelocity()).getMetersPerSecond());
+        SmartDashboard.putNumber("Left Motor Speed", getLeftMotorSpeed().getMetersPerSecond());
+        SmartDashboard.putNumber("Right Motor Speed", getRightMotorSpeed().getMetersPerSecond());
     }
 
     /**
