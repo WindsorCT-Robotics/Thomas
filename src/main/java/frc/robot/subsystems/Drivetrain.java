@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Types.RadiansPerSecond;
@@ -294,6 +295,15 @@ public class Drivetrain extends SubsystemBase {
     public void setMotorSpeed(MetersPerSecond leftMotorSpeed, MetersPerSecond righMotorSpeed) {
         setLeftMotorSpeed(leftMotorSpeed);
         setRightMotorSpeed(righMotorSpeed);
+    }
+
+    /**
+     * Set the motor speed in meters per second
+     * 
+     * @param wheelSpeeds  New target motor speeds for drivetrain.
+     */
+    public void setMotorSpeed(DifferentialDriveWheelSpeeds wheelSpeeds) {
+        setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond), new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
     }
 
 }

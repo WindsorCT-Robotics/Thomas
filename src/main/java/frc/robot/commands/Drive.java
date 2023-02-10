@@ -75,8 +75,7 @@ public class Drive extends CommandBase {
                         turn.getAsDouble() * Drivetrain.MAX_ANGULAR_VELOCITY.getRadiansPerSecond()
                                 + turnAdjustment.getRadians()));
 
-        drivetrain.setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond),
-                new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
+        drivetrain.setMotorSpeed(wheelSpeeds);
 
     }
 
