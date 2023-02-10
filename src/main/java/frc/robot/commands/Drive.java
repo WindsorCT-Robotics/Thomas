@@ -28,9 +28,10 @@ public class Drive extends CommandBase {
     private final Drivetrain drivetrain;
     private final NineAxis pidgey;
 
-    private static PIDController initTurnController(PID pid, Rotation2d minimumInput, Rotation2d maximumInput) {
+    private static PIDController initTurnController(PID pid, Rotation2d minimumInput, Rotation2d maximumInput, Rotation2d tolerance) {
         PIDController turnController = new PIDController(pid.getP(), pid.getI(), pid.getD());
         turnController.reset();
+        turnController.setTolerance(tolerance.getRadians());
         turnController.enableContinuousInput(minimumInput.getRadians(), maximumInput.getRadians());
 
         return turnController;
@@ -40,8 +41,9 @@ public class Drive extends CommandBase {
         this.turn = turn;
         this.move = move;
 
-        this.turnPid = new PID(1, 0, 0); // TODO: Placeholder values
-        this.turnController = initTurnController(turnPid, Rotation2d.fromDegrees(-180), Rotation2d.fromDegrees(180));
+        turnPid = new PID(1, 0, 0); // TODO: Placeholder values
+        Rotation2d tolerance = Rotation2d.fromDegrees(3); // TODO: Placeholder value        
+        turnController = initTurnController(turnPid, Rotation2d.fromDegrees(-180), Rotation2d.fromDegrees(180), tolerance);
         SendableRegistry.setName(turnController, "Drivetrain", "Turn PID Controller");
 
         this.drivetrain = drivetrain;
@@ -66,9 +68,9 @@ public class Drive extends CommandBase {
         Rotation2d turnAdjustment = Rotation2d.fromRadians(turnController.calculate(pidgey.getYaw().getRadians()));
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics
                 .toWheelSpeeds(new ChassisSpeeds(
-                        move.getAsDouble() * Drivetrain.MAX_SPEED.getMetersPerSecond(),
+                        move.getAsDouble() * Drivetrain.MAX_VELOCITY.getMetersPerSecond(),
                         0, // our robot can't fly
-                        turn.getAsDouble() * Drivetrain.MAX_ANGULAR_SPEED.getRadiansPerSecond()
+                        turn.getAsDouble() * Drivetrain.MAX_ANGULAR_VELOCITY.getRadiansPerSecond()
                                 + turnAdjustment.getRadians()));
 
         drivetrain.setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond),

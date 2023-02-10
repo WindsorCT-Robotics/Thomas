@@ -49,8 +49,8 @@ public class Drivetrain extends SubsystemBase {
     public static final int ENCODER_RESOLUTION = 2048;
 
     // Speed values
-    public static final MetersPerSecond MAX_SPEED = new MetersPerSecond(3.0); // TODO: placeholder value
-    public static final RadiansPerSecond MAX_ANGULAR_SPEED = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder
+    public static final MetersPerSecond MAX_VELOCITY = new MetersPerSecond(3.0); // TODO: placeholder value
+    public static final RadiansPerSecond MAX_ANGULAR_VELOCITY = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder
                                                                                                 // value
 
     // Motors
@@ -82,6 +82,14 @@ public class Drivetrain extends SubsystemBase {
 
         return motor;
     }
+
+    private static PIDController initDrivePIDController(PID pid, MetersPerSecond tolerance) {
+        PIDController turnController = new PIDController(pid.getP(), pid.getI(), pid.getD());
+        turnController.reset();
+        turnController.setTolerance(tolerance.getMetersPerSecond());
+
+        return turnController;
+    } 
 
     private static void setFollower(WPI_TalonFX leader, WPI_TalonFX follower) {
         follower.follow(leader);
@@ -127,8 +135,9 @@ public class Drivetrain extends SubsystemBase {
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
         // initialize PID controllers
-        leftPidController = new PIDController(LEFT_GAINS.getP(), LEFT_GAINS.getI(), LEFT_GAINS.getD());
-        rightPidController = new PIDController(RIGHT_GAINS.getP(), RIGHT_GAINS.getI(), RIGHT_GAINS.getD());
+        MetersPerSecond tolerance = new MetersPerSecond(0.1);
+        leftPidController = initDrivePIDController(LEFT_GAINS, tolerance);
+        rightPidController = initDrivePIDController(RIGHT_GAINS, tolerance);
 
         addChild("Left PID controller", leftPidController);
         addChild("Right PID controller", rightPidController);
