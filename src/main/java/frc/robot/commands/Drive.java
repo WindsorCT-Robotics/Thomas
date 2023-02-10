@@ -28,7 +28,8 @@ public class Drive extends CommandBase {
     private final Drivetrain drivetrain;
     private final NineAxis pidgey;
 
-    private static PIDController initTurnController(PID pid, Rotation2d minimumInput, Rotation2d maximumInput, Rotation2d tolerance) {
+    private static PIDController initTurnController(PID pid, Rotation2d minimumInput, Rotation2d maximumInput,
+            Rotation2d tolerance) {
         PIDController turnController = new PIDController(pid.getP(), pid.getI(), pid.getD());
         turnController.reset();
         turnController.setTolerance(tolerance.getRadians());
@@ -42,8 +43,9 @@ public class Drive extends CommandBase {
         this.move = move;
 
         turnPid = new PID(1, 0, 0); // TODO: Placeholder values
-        Rotation2d tolerance = Rotation2d.fromDegrees(3); // TODO: Placeholder value        
-        turnController = initTurnController(turnPid, Rotation2d.fromDegrees(-180), Rotation2d.fromDegrees(180), tolerance);
+        Rotation2d tolerance = Rotation2d.fromDegrees(3); // TODO: Placeholder value
+        turnController = initTurnController(turnPid, Rotation2d.fromDegrees(-180), Rotation2d.fromDegrees(180),
+                tolerance);
         SendableRegistry.setName(turnController, "Drivetrain", "Turn PID Controller");
 
         this.drivetrain = drivetrain;

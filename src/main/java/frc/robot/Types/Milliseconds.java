@@ -22,15 +22,16 @@ public class Milliseconds {
         result = prime * result + rawValue;
         return result;
     }
-    
+
     public boolean equals(Milliseconds other) {
         return rawValue == other.rawValue;
     }
 
-    /** 
+    /**
      * Determines equality between two values in milliseconds.
      * 
-     * @param obj The object to compare. Always unequal if obj is not a Milliseconds instance.
+     * @param obj The object to compare. Always unequal if obj is not a Milliseconds
+     *            instance.
      * @return true if equal; false otherwise.
      */
     @Override
@@ -43,12 +44,12 @@ public class Milliseconds {
 
         if (getClass() != obj.getClass())
             return false;
-            
+
         Milliseconds other = (Milliseconds) obj;
         return equals(other);
     }
 
-    /** 
+    /**
      * @returns the value represented as a string.
      */
     @Override

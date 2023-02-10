@@ -51,7 +51,7 @@ public class Drivetrain extends SubsystemBase {
     // Speed values
     public static final MetersPerSecond MAX_VELOCITY = new MetersPerSecond(3.0); // TODO: placeholder value
     public static final RadiansPerSecond MAX_ANGULAR_VELOCITY = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder
-                                                                                                // value
+                                                                                                   // value
 
     // Motors
     private final WPI_TalonFX leftMaster;
@@ -89,7 +89,7 @@ public class Drivetrain extends SubsystemBase {
         turnController.setTolerance(tolerance.getMetersPerSecond());
 
         return turnController;
-    } 
+    }
 
     private static void setFollower(WPI_TalonFX leader, WPI_TalonFX follower) {
         follower.follow(leader);
@@ -135,7 +135,7 @@ public class Drivetrain extends SubsystemBase {
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
         // initialize PID controllers
-        MetersPerSecond tolerance = new MetersPerSecond(0.1);
+        MetersPerSecond tolerance = new MetersPerSecond(0.1); // TODO: placeholder value
         leftPidController = initDrivePIDController(LEFT_GAINS, tolerance);
         rightPidController = initDrivePIDController(RIGHT_GAINS, tolerance);
 

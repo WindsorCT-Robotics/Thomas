@@ -16,7 +16,6 @@ public class NineAxis extends SubsystemBase {
         pidgey = pigeon2;
         pidgey.reset();
         addChild("Pigeon", pidgey);
-        
 
         ErrorCode result = pidgey.configFactoryDefault(timeout.getMilliseconds());
 
@@ -47,6 +46,7 @@ public class NineAxis extends SubsystemBase {
 
     /**
      * Get robot yaw as Rotation2d
+     * 
      * @return pigeon yaw
      */
     public Rotation2d getYaw() {

@@ -5,33 +5,33 @@ public class PID {
     private double integral;
     private double derivative;
 
-    public PID (double proportinal, double integral, double derivative) {
+    public PID(double proportinal, double integral, double derivative) {
         this.proportional = proportinal;
         this.integral = integral;
         this.derivative = derivative;
     }
 
-    public void setP (double p) {
+    public void setP(double p) {
         proportional = p;
     }
 
-    public void setI (double i) {
+    public void setI(double i) {
         integral = i;
     }
 
-    public void setD (double d) {
+    public void setD(double d) {
         derivative = d;
     }
 
-    public double getP () {
+    public double getP() {
         return proportional;
     }
 
-    public double getI () {
+    public double getI() {
         return integral;
     }
 
-    public double getD () {
+    public double getD() {
         return derivative;
     }
 
@@ -48,12 +48,11 @@ public class PID {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
-    
+
     public boolean equals(PID other) {
-        return
-            Double.doubleToLongBits(proportional) == Double.doubleToLongBits(other.proportional)
-            && Double.doubleToLongBits(integral) == Double.doubleToLongBits(other.integral)
-            && Double.doubleToLongBits(derivative) == Double.doubleToLongBits(other.derivative);
+        return Double.doubleToLongBits(proportional) == Double.doubleToLongBits(other.proportional)
+                && Double.doubleToLongBits(integral) == Double.doubleToLongBits(other.integral)
+                && Double.doubleToLongBits(derivative) == Double.doubleToLongBits(other.derivative);
     }
 
     @Override
@@ -66,7 +65,7 @@ public class PID {
 
         if (getClass() != obj.getClass())
             return false;
-            
+
         PID other = (PID) obj;
         return equals(other);
     }
