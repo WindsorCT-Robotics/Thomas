@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.PID;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.NineAxis;
