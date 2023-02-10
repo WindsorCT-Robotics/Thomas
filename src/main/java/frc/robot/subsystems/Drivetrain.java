@@ -105,8 +105,11 @@ public class Drivetrain extends SubsystemBase {
      * @return Wheel velocity in meters per second
      */
     private static MetersPerSecond getEncoderVelocity(double encoderVelocity) {
-        double unitsPerMeter = ENCODER_RESOLUTION * GEAR_RATIO * WHEEL_CIRCUMFERENCE.getMeters();
-        return new MetersPerSecond(encoderVelocity / (10 * unitsPerMeter));
+        // Encoder units per meter
+        final double unitsPerMeter = ENCODER_RESOLUTION * GEAR_RATIO * WHEEL_CIRCUMFERENCE.getMeters();
+        // Tenths of a second to seconds
+        final double tenthsToSeconds = 10;
+        return new MetersPerSecond(encoderVelocity * (tenthsToSeconds / unitsPerMeter));
     }
 
     /**
