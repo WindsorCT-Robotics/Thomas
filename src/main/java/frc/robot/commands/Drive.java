@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Types.MetersPerSecond;
@@ -41,6 +42,7 @@ public class Drive extends CommandBase {
 
         this.turnPid = new PID(1, 0, 0); // TODO: Placeholder values
         this.turnController = initTurnController(turnPid, Rotation2d.fromDegrees(-180), Rotation2d.fromDegrees(180));
+        SendableRegistry.setName(turnController, "Drivetrain", "Turn PID Controller");
 
         this.drivetrain = drivetrain;
         this.pidgey = pidgey;

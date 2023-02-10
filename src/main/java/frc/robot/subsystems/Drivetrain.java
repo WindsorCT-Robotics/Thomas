@@ -50,7 +50,8 @@ public class Drivetrain extends SubsystemBase {
 
     // Speed values
     public static final MetersPerSecond MAX_SPEED = new MetersPerSecond(3.0); // TODO: placeholder value
-    public static final RadiansPerSecond MAX_ANGULAR_SPEED = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder value
+    public static final RadiansPerSecond MAX_ANGULAR_SPEED = new RadiansPerSecond(2 * Math.PI); // TODO: placeholder
+                                                                                                // value
 
     // Motors
     private final WPI_TalonFX leftMaster;
@@ -59,7 +60,7 @@ public class Drivetrain extends SubsystemBase {
     private final SimpleMotorFeedforward feedforward;
 
     // PID controllers
-    private final PIDController lefPidController;
+    private final PIDController leftPidController;
     private final PIDController rightPidController;
 
     /**
@@ -73,7 +74,7 @@ public class Drivetrain extends SubsystemBase {
         motor.configFactoryDefault();
         motor.configSelectedFeedbackSensor(RemoteFeedbackDevice.RemoteSensor0);
 
-        FilterConfiguration filterConfig =  new FilterConfiguration();
+        FilterConfiguration filterConfig = new FilterConfiguration();
         filterConfig.remoteSensorSource = RemoteSensorSource.CANCoder;
 
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -103,11 +104,16 @@ public class Drivetrain extends SubsystemBase {
     /**
      * Create a new drivetrain control subsystem.
      */
-    public Drivetrain(WPI_TalonFX leftLeader, WPI_TalonFX leftFollower, WPI_TalonFX rightLeader,
+    public Drivetrain(WPI_TalonFX leftMaster, WPI_TalonFX leftFollower, WPI_TalonFX rightMaster,
             WPI_TalonFX rightFollower, NineAxis pigeon) {
         // Initialize motors
-        leftMaster = leftLeader;
-        rightMaster = rightLeader;
+        this.leftMaster = leftMaster;
+        this.rightMaster = rightMaster;
+
+        addChild("Left Master Motor", leftMaster);
+        addChild("Left Follower Motor", leftFollower);
+        addChild("Right Master Motor", rightMaster);
+        addChild("Right Follower Motor", rightFollower);
 
         // Set master and follower motors
         setFollower(leftMaster, leftFollower);
@@ -121,8 +127,11 @@ public class Drivetrain extends SubsystemBase {
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
         // initialize PID controllers
-        lefPidController = new PIDController(LEFT_GAINS.getP(), LEFT_GAINS.getI(), LEFT_GAINS.getD());
+        leftPidController = new PIDController(LEFT_GAINS.getP(), LEFT_GAINS.getI(), LEFT_GAINS.getD());
         rightPidController = new PIDController(RIGHT_GAINS.getP(), RIGHT_GAINS.getI(), RIGHT_GAINS.getD());
+
+        addChild("Left PID controller", leftPidController);
+        addChild("Right PID controller", rightPidController);
 
         stop();
     }
@@ -130,7 +139,14 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.updateValues();
+        doTelemetry();
 
+    }
+
+    /**
+     * Output telemetry data
+     */
+    private void doTelemetry() {
         SmartDashboard.putNumber("Left Motor Power", leftMaster.getMotorOutputPercent() * 100);
         SmartDashboard.putNumber("Right Motor Power", rightMaster.getMotorOutputPercent() * 100);
 
@@ -138,7 +154,6 @@ public class Drivetrain extends SubsystemBase {
                 getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond());
         SmartDashboard.putNumber("Right Motor Speed",
                 getEncoderVelocity(rightMaster.getSelectedSensorVelocity()).getMetersPerSecond());
-
     }
 
     /**
@@ -236,7 +251,7 @@ public class Drivetrain extends SubsystemBase {
     public void setLeftMotorSpeed(MetersPerSecond speed) {
         final double feedForward = feedforward.calculate(speed.getMetersPerSecond());
 
-        final MotorPower output = new MotorPower(lefPidController.calculate(
+        final MotorPower output = new MotorPower(leftPidController.calculate(
                 getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond(),
                 speed.getMetersPerSecond()));
 
