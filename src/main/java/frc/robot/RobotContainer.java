@@ -4,16 +4,13 @@
 
 package frc.robot;
 
-import java.util.function.DoubleSupplier;
-
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Types.Milliseconds;
 import frc.robot.commands.Drive;
+import frc.robot.subsystems.DriveController;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.NineAxis;
 
@@ -23,12 +20,12 @@ public class RobotContainer {
     private final Drivetrain drive;
 
     // Controller
-    private final CommandXboxController driveController;
-    private final SlewRateLimiter moveLimiter;
-    private final SlewRateLimiter turnLimiter;
+    private final DriveController driveController;
+    private final double DEADZONE = 0.25; // TODO: placeholder value
+    private final double POSITIVE_RATE_LIMIT = 0.3; // TODO: placeholder value
+    private final double NEGATIVE_RATE_LIMIT = 0.1; // TODO: placeholder value
 
     public RobotContainer() {
-        double controllerDeadzonePercent = 0.3;
 
         pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
@@ -39,19 +36,13 @@ public class RobotContainer {
                 Drivetrain.initMotor(4),
                 pidgey);
 
-        driveController = new CommandXboxController(0);
-
-        // 3 millisecond rate limit for joystick smoothing; 1/3 of a second for a change
-        // of 1 meter/second
-        // TODO: placeholder value
-        moveLimiter = new SlewRateLimiter(3);
-        turnLimiter = new SlewRateLimiter(3);
+        driveController = new DriveController(0, DEADZONE, POSITIVE_RATE_LIMIT, NEGATIVE_RATE_LIMIT);
 
         Drive driveCommand = new Drive(
                 drive,
                 pidgey,
-                deadzoneModifier(() -> moveLimiter.calculate(driveController.getRightX()), controllerDeadzonePercent),
-                deadzoneModifier(() -> turnLimiter.calculate(driveController.getLeftY()), controllerDeadzonePercent));
+                () -> driveController.getSpeed(),
+                () -> driveController.getAngle());
 
         configureBindings();
 
@@ -66,20 +57,4 @@ public class RobotContainer {
         return Commands.print("No autonomous command configured");
     }
 
-    private static DoubleSupplier deadzoneModifier(DoubleSupplier rawValueSupplier, double deadzone) {
-        return () -> {
-            double rawValue = rawValueSupplier.getAsDouble();
-            double result;
-            double validRange = 1 - deadzone;
-            double value = Math.abs(rawValue);
-
-            if (value > deadzone) {
-                result = (value - deadzone) / validRange;
-            } else {
-                result = 0;
-            }
-
-            return rawValue < 0 ? -result : result;
-        };
-    }
 }
