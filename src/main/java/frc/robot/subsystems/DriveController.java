@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Types.MetersPerSecond;
+import frc.robot.Types.RadiansPerSecond;
 
 public class DriveController extends SubsystemBase {
     private MetersPerSecond speed = new MetersPerSecond(0);
@@ -33,9 +34,16 @@ public class DriveController extends SubsystemBase {
 
     @Override
     public void periodic() {
-        angle = angle.plus(
-                Rotation2d.fromDegrees(turn.getAsDouble() * Drivetrain.MAX_ANGULAR_VELOCITY.getRadiansPerSecond()));
-        speed = new MetersPerSecond(move.getAsDouble() * Drivetrain.MAX_VELOCITY.getMetersPerSecond());
+        angle = calculateAngle(angle, turn.getAsDouble(), Drivetrain.MAX_ANGULAR_VELOCITY);
+        speed = calculateSpeed(move.getAsDouble(), Drivetrain.MAX_VELOCITY);
+    }
+    
+    private Rotation2d calculateAngle (Rotation2d startingAngle, double turningAxisValue, RadiansPerSecond maxAngularVelocity) {
+        return startingAngle.plus(Rotation2d.fromRadians(turningAxisValue * maxAngularVelocity.getRadiansPerSecond()));
+    }
+
+    private MetersPerSecond calculateSpeed (double movementAxisValue, MetersPerSecond maxVelocity) {
+        return new MetersPerSecond(movementAxisValue * maxVelocity.getMetersPerSecond());
     }
 
     public Rotation2d getAngle() {
