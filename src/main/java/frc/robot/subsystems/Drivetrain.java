@@ -135,7 +135,7 @@ public class Drivetrain extends SubsystemBase {
         rightMaster.setInverted(rightInvert);
 
         // Feedforward gains
-        feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
+        feedforward = new SimpleMotorFeedforward(0.18157, 2.3447, 0.54597);
 
         // initialize PID controllers
         MetersPerSecond tolerance = new MetersPerSecond(0.01); // TODO: placeholder value
