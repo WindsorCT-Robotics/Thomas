@@ -43,8 +43,8 @@ public class Drivetrain extends SubsystemBase {
     public static final PID LEFT_GAINS = new PID(1, 0, 0); // TODO: placeholder value
     public static final PID RIGHT_GAINS = new PID(1, 0, 0); // TODO: placeholder value
 
-    // Gear ratio
-    public static final double GEAR_RATIO = 1 / 10.7; // 10.7:1 gear ratio
+    // 10.7:1 gear ratio: 1 gearbox revolution for every 10.7 motor revolutions
+    public static final double GEAR_RATIO = 1 / 10.7;
 
     // Encoder pulses per rotation
     public static final int ENCODER_RESOLUTION = 2048;
@@ -298,10 +298,11 @@ public class Drivetrain extends SubsystemBase {
     /**
      * Set the motor speed in meters per second
      * 
-     * @param wheelSpeeds  New target motor speeds for drivetrain.
+     * @param wheelSpeeds New target motor speeds for drivetrain.
      */
     public void setMotorSpeed(DifferentialDriveWheelSpeeds wheelSpeeds) {
-        setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond), new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
+        setMotorSpeed(new MetersPerSecond(wheelSpeeds.leftMetersPerSecond),
+                new MetersPerSecond(wheelSpeeds.rightMetersPerSecond));
     }
 
 }
