@@ -16,11 +16,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Types.RadiansPerSecond;
 import frc.robot.Types.Meters;
 import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.MotorPower;
 import frc.robot.Types.PID;
+import frc.robot.Types.RadiansPerSecond;
 
 /**
  * This subsystem controls four motors; two on each side of the robot.
@@ -35,7 +35,7 @@ public class Drivetrain extends SubsystemBase {
     public final TalonFXInvertType rightInvert = TalonFXInvertType.Clockwise;
 
     // Wheel geometry
-    public static final Meters TRACK_WIDTH = new Meters(.568325); // TODO: placeholder value
+    public static final Meters TRACK_WIDTH = new Meters(.568325);
     public static final Meters WHEEL_RADIUS = new Meters(.1524);
     public static final Meters WHEEL_CIRCUMFERENCE = new Meters(2 * Math.PI * WHEEL_RADIUS.getMeters());
 
@@ -85,11 +85,11 @@ public class Drivetrain extends SubsystemBase {
     }
 
     private static PIDController initDrivePIDController(PID pid, MetersPerSecond tolerance) {
-        PIDController turnController = new PIDController(pid.getP(), pid.getI(), pid.getD());
-        turnController.reset();
-        turnController.setTolerance(tolerance.getMetersPerSecond());
+        PIDController driveController = new PIDController(pid.getP(), pid.getI(), pid.getD());
+        driveController.reset();
+        driveController.setTolerance(tolerance.getMetersPerSecond());
 
-        return turnController;
+        return driveController;
     }
 
     private static void setFollower(WPI_TalonFX leader, WPI_TalonFX follower) {
@@ -138,7 +138,7 @@ public class Drivetrain extends SubsystemBase {
         feedforward = new SimpleMotorFeedforward(0.18157, 2.3447, 0.54597);
 
         // initialize PID controllers
-        MetersPerSecond tolerance = new MetersPerSecond(0.01); // TODO: placeholder value
+        MetersPerSecond tolerance = new MetersPerSecond(1.2601);
         leftPidController = initDrivePIDController(LEFT_GAINS, tolerance);
         rightPidController = initDrivePIDController(RIGHT_GAINS, tolerance);
 

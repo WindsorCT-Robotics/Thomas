@@ -38,7 +38,8 @@ public class Drive extends CommandBase {
         return turnController;
     }
 
-    public Drive(Drivetrain drivetrain, NineAxis pidgey, Supplier<MetersPerSecond> targetSpeed, Supplier<Rotation2d> targetAngle) {
+    public Drive(Drivetrain drivetrain, NineAxis pidgey, Supplier<MetersPerSecond> targetSpeed,
+            Supplier<Rotation2d> targetAngle) {
         this.targetAngle = targetAngle;
         this.targetSpeed = targetSpeed;
 
@@ -67,12 +68,12 @@ public class Drive extends CommandBase {
 
     @Override
     public void execute() {
-        turnController.setSetpoint(targetAngle.get().getRadians());
-        Rotation2d turnAdjustment = Rotation2d.fromRadians(turnController.calculate(pidgey.getYaw().getRadians()));
+        Rotation2d turnAdjustment = Rotation2d
+                .fromRadians(turnController.calculate(pidgey.getYaw().getRadians(), targetAngle.get().getRadians()));
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
-            targetSpeed.get().getMetersPerSecond(),
-            0, // our robot can't sidle
-            turnAdjustment.getRadians());
+                targetSpeed.get().getMetersPerSecond(),
+                0, // our robot can't sidle
+                turnAdjustment.getRadians());
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
         wheelSpeeds.desaturate(Drivetrain.MAX_VELOCITY.getMetersPerSecond());
 
