@@ -35,7 +35,7 @@ public class Drivetrain extends SubsystemBase {
     public final TalonFXInvertType rightInvert = TalonFXInvertType.Clockwise;
 
     // Wheel geometry
-    public static final Meters TRACK_WIDTH = new Meters(.568325);
+    public static final Meters TRACK_WIDTH = new Meters(.568325); // TODO: placeholder value
     public static final Meters WHEEL_RADIUS = new Meters(.1524);
     public static final Meters WHEEL_CIRCUMFERENCE = new Meters(2 * Math.PI * WHEEL_RADIUS.getMeters());
 
@@ -44,7 +44,7 @@ public class Drivetrain extends SubsystemBase {
     public static final PID RIGHT_GAINS = new PID(1, 0, 0); // TODO: placeholder value
 
     // Gear ratio
-    public static final double GEAR_RATIO = 4 / 3; // TODO: placeholder value
+    public static final double GEAR_RATIO = 1 / 10.7; // 10.7:1 gear ratio
 
     // Encoder pulses per rotation
     public static final int ENCODER_RESOLUTION = 2048;
@@ -139,7 +139,7 @@ public class Drivetrain extends SubsystemBase {
         feedforward = new SimpleMotorFeedforward(1, 3); // TODO: placeholder value
 
         // initialize PID controllers
-        MetersPerSecond tolerance = new MetersPerSecond(0.1); // TODO: placeholder value
+        MetersPerSecond tolerance = new MetersPerSecond(0.01); // TODO: placeholder value
         leftPidController = initDrivePIDController(LEFT_GAINS, tolerance);
         rightPidController = initDrivePIDController(RIGHT_GAINS, tolerance);
 
