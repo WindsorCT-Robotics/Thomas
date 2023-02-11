@@ -2,7 +2,7 @@ package frc.robot.commands;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,13 +12,14 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.PID;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.NineAxis;
 
 public class Drive extends CommandBase {
-    private final DoubleSupplier move;
-    private final DoubleSupplier turn;
+    private final Supplier<MetersPerSecond> targetSpeed;
+    private final Supplier<Rotation2d> targetAngle;
 
     private final DifferentialDriveKinematics kinematics;
     private final PID turnPid;
@@ -37,9 +38,9 @@ public class Drive extends CommandBase {
         return turnController;
     }
 
-    public Drive(Drivetrain drivetrain, NineAxis pidgey, DoubleSupplier turn, DoubleSupplier move) {
-        this.turn = turn;
-        this.move = move;
+    public Drive(Drivetrain drivetrain, NineAxis pidgey, Supplier<MetersPerSecond> targetSpeed, Supplier<Rotation2d> targetAngle) {
+        this.targetAngle = targetAngle;
+        this.targetSpeed = targetSpeed;
 
         turnPid = new PID(1, 0, 0); // TODO: Placeholder values
         Rotation2d tolerance = Rotation2d.fromDegrees(3); // TODO: Placeholder value
@@ -66,13 +67,14 @@ public class Drive extends CommandBase {
 
     @Override
     public void execute() {
+        turnController.setSetpoint(targetAngle.get().getRadians());
         Rotation2d turnAdjustment = Rotation2d.fromRadians(turnController.calculate(pidgey.getYaw().getRadians()));
-        DifferentialDriveWheelSpeeds wheelSpeeds = kinematics
-                .toWheelSpeeds(new ChassisSpeeds(
-                        move.getAsDouble() * Drivetrain.MAX_VELOCITY.getMetersPerSecond(),
-                        0, // our robot can't fly
-                        turn.getAsDouble() * Drivetrain.MAX_ANGULAR_VELOCITY.getRadiansPerSecond()
-                                + turnAdjustment.getRadians()));
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
+            targetSpeed.get().getMetersPerSecond(),
+            0, // our robot can't sidle
+            turnAdjustment.getRadians());
+        DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
+        wheelSpeeds.desaturate(Drivetrain.MAX_VELOCITY.getMetersPerSecond());
 
         drivetrain.setMotorSpeed(wheelSpeeds);
 
