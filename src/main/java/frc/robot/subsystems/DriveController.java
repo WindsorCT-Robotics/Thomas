@@ -1,21 +1,22 @@
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Types.JoystickAxis;
 import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.RadiansPerSecond;
 
 public class DriveController extends SubsystemBase {
     private MetersPerSecond speed = new MetersPerSecond(0);
-    private final DoubleSupplier move;
+    private final Supplier<JoystickAxis> move;
     private final SlewRateLimiter moveLimiter;
 
     private Rotation2d angle = Rotation2d.fromDegrees(0);
-    private final DoubleSupplier turn;
+    private final Supplier<JoystickAxis> turn;
     private final SlewRateLimiter turnLimiter;
 
     private final CommandXboxController controller;
@@ -26,16 +27,16 @@ public class DriveController extends SubsystemBase {
         this.deadzone = deadzone;
 
         moveLimiter = new SlewRateLimiter(positiveRateLimit, negativeRateLimit, 0);
-        move = deadzoneModifier(() -> moveLimiter.calculate(controller.getLeftY()), this.deadzone);
+        move = deadzoneModifier(() -> new JoystickAxis(moveLimiter.calculate(controller.getLeftY())), this.deadzone);
 
         turnLimiter = new SlewRateLimiter(positiveRateLimit, negativeRateLimit, 0);
-        turn = deadzoneModifier(() -> turnLimiter.calculate(controller.getRightX()), this.deadzone);
+        turn = deadzoneModifier(() -> new JoystickAxis(turnLimiter.calculate(controller.getRightX())), this.deadzone);
     }
 
     @Override
     public void periodic() {
-        angle = calculateAngle(angle, turn.getAsDouble(), Drivetrain.MAX_ANGULAR_VELOCITY);
-        speed = calculateSpeed(move.getAsDouble(), Drivetrain.MAX_VELOCITY);
+        angle = calculateAngle(angle, turn.get().getValue(), Drivetrain.MAX_ANGULAR_VELOCITY);
+        speed = calculateSpeed(move.get().getValue(), Drivetrain.MAX_VELOCITY);
     }
     
     private Rotation2d calculateAngle (Rotation2d startingAngle, double turningAxisValue, RadiansPerSecond maxAngularVelocity) {
@@ -54,9 +55,9 @@ public class DriveController extends SubsystemBase {
         return speed;
     }
 
-    private static DoubleSupplier deadzoneModifier(DoubleSupplier rawValueSupplier, double deadzone) {
+    private static Supplier<JoystickAxis> deadzoneModifier(Supplier<JoystickAxis> rawValueSupplier, double deadzone) {
         return () -> {
-            double rawValue = rawValueSupplier.getAsDouble();
+            double rawValue = rawValueSupplier.get().getValue();
             double result;
             double validRange = 1 - deadzone;
             double value = Math.abs(rawValue);
@@ -67,7 +68,7 @@ public class DriveController extends SubsystemBase {
                 result = 0;
             }
 
-            return rawValue < 0 ? -result : result;
+            return new JoystickAxis(rawValue < 0 ? -result : result);
         };
     }
 }
