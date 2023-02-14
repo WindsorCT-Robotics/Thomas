@@ -4,20 +4,27 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Types.FeedForwardGains;
+import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.Milliseconds;
+import frc.robot.Types.PID;
 import frc.robot.commands.Drive;
 import frc.robot.subsystems.DriveController;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.MotorSubsystem;
 import frc.robot.subsystems.NineAxis;
 
 public class RobotContainer {
     // Subsystems
     private final NineAxis pidgey;
     private final Drivetrain drive;
+    private final MotorSubsystem leftMotors;
+    private final MotorSubsystem rightMotors;
 
     // Controller
     private final DriveController driveController;
@@ -27,13 +34,24 @@ public class RobotContainer {
 
     public RobotContainer() {
 
+        // Initialize subsystems
+        // TODO: Placeholder PID values
+        leftMotors = new MotorSubsystem("Left Motors", new PID(1, 0, 0), TalonFXInvertType.Clockwise,
+                new MetersPerSecond(0.01), new FeedForwardGains(0.18157, 2.3447, 0.54597),
+                MotorSubsystem.initMotor(1),
+                MotorSubsystem.initMotor(3));
+
+        // TODO: Placeholder PID values
+        rightMotors = new MotorSubsystem("Right Motors", new PID(1, 0, 0), TalonFXInvertType.CounterClockwise,
+                new MetersPerSecond(0.01), new FeedForwardGains(0.18157, 2.3447, 0.54597),
+                MotorSubsystem.initMotor(2),
+                MotorSubsystem.initMotor(4));
+
         pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
         drive = new Drivetrain(
-                Drivetrain.initMotor(1),
-                Drivetrain.initMotor(2),
-                Drivetrain.initMotor(3),
-                Drivetrain.initMotor(4),
+                leftMotors,
+                rightMotors,
                 pidgey);
 
         driveController = new DriveController(0, DEADZONE, POSITIVE_RATE_LIMIT, NEGATIVE_RATE_LIMIT);

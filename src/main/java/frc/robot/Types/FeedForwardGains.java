@@ -1,5 +1,7 @@
 package frc.robot.Types;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+
 public class FeedForwardGains {
     private final double staticGain;
     private final double velocityGain;
@@ -26,10 +28,9 @@ public class FeedForwardGains {
     }
 
     public boolean equals(FeedForwardGains other) {
-        return
-            Double.doubleToLongBits(accelerationGain) == Double.doubleToLongBits(other.accelerationGain)
-            && Double.doubleToLongBits(staticGain) == Double.doubleToLongBits(other.staticGain)
-            && Double.doubleToLongBits(velocityGain) == Double.doubleToLongBits(other.velocityGain);
+        return Double.doubleToLongBits(accelerationGain) == Double.doubleToLongBits(other.accelerationGain)
+                && Double.doubleToLongBits(staticGain) == Double.doubleToLongBits(other.staticGain)
+                && Double.doubleToLongBits(velocityGain) == Double.doubleToLongBits(other.velocityGain);
     }
 
     @Override
@@ -43,6 +44,10 @@ public class FeedForwardGains {
 
         FeedForwardGains other = (FeedForwardGains) obj;
         return equals(other);
+    }
+
+    public SimpleMotorFeedforward toSimpleMotorFeedforward() {
+        return new SimpleMotorFeedforward(staticGain, velocityGain, accelerationGain);
     }
 
     public double getStaticGain() {

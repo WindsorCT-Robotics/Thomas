@@ -1,11 +1,14 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.RemoteFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.FilterConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
@@ -20,13 +23,12 @@ public class MotorSubsystem extends PIDSubsystem {
     private SimpleMotorFeedforward feedforward;
     
     // 10.7:1 gear ratio: 1 gearbox revolution for every 10.7 motor revolutions
-    private static final double GEAR_RATIO = 1 / 10.7;
+    public static final double GEAR_RATIO = 1 / 10.7;
 
     // Encoder pulses per rotation
-    private static final int ENCODER_RESOLUTION = 2048;
+    public static final int ENCODER_RESOLUTION = 2048;
     
     // Wheel geometry
-    private static final Meters TRACK_WIDTH = new Meters(.568325);
     private static final Meters WHEEL_RADIUS = new Meters(.1524);
     private static final Meters WHEEL_CIRCUMFERENCE = new Meters(2 * Math.PI * WHEEL_RADIUS.getMeters());
 
@@ -34,7 +36,7 @@ public class MotorSubsystem extends PIDSubsystem {
         super(pid.toPIDController());
 
         // Feedforward gains
-        feedforward = new SimpleMotorFeedforward(gains.getStaticGain(), gains.getVelocityGain(), gains.getAccelerationGain());
+        feedforward = gains.toSimpleMotorFeedforward();
 
         setName(name);
         getController().reset();
@@ -68,14 +70,13 @@ public class MotorSubsystem extends PIDSubsystem {
      * Output telemetry data
      */
     private void doTelemetry() {
-        SmartDashboard.putNumber(getName() + "Power", motor.getMotorOutputPercent());
-        SmartDashboard.putNumber(getName() + "Speed", getEncoderVelocity(motor.getSelectedSensorVelocity()).getMetersPerSecond());
+        SmartDashboard.putNumber(getName() + " Power", motor.getMotorOutputPercent());
+        SmartDashboard.putNumber(getName() + " Speed", getEncoderVelocity(motor.getSelectedSensorVelocity()).getMetersPerSecond());
     }
 
     @Override
     protected double getMeasurement() {
-        // TODO Auto-generated method stub
-        return 0;
+        return getEncoderVelocity(motor.getSelectedSensorPosition()).getMetersPerSecond();
     }
 
     @Override
@@ -83,25 +84,46 @@ public class MotorSubsystem extends PIDSubsystem {
         super.periodic();
 
         SmartDashboard.updateValues();
+        doTelemetry();
     }
 
     @Override
     protected void useOutput(double output, double setpoint) {
-        // TODO Auto-generated method stub
+        final MotorPower feedForward = new MotorPower(feedforward.calculate(setpoint));
+
+        final MotorPower speed = new MotorPower(output);
+
+        motor.set(ControlMode.PercentOutput, MotorPower.add(feedForward, speed).getValue());
         
+    }
+
+    public void setSpeed(MetersPerSecond speed) {
+        super.getController().setSetpoint(speed.getMetersPerSecond());
     }
 
     public void stop() {
         motor.set(TalonFXControlMode.PercentOutput, 0);
     }
 
-    public void setLeftMotorSpeed(MetersPerSecond speed) {
-        final double feedForward = feedforward.calculate(speed.getMetersPerSecond());
+    /**
+     * Convenience method for initializing motors
+     * 
+     * @param deviceNumber CAN ID of motor
+     * @return The configured motor
+     */
+    public static WPI_TalonFX initMotor(int deviceNumber) {
+        WPI_TalonFX motor = new WPI_TalonFX(deviceNumber);
+        motor.configFactoryDefault();
+        motor.configSelectedFeedbackSensor(RemoteFeedbackDevice.RemoteSensor0);
 
-        final MotorPower output = new MotorPower(leftPidController.calculate(
-                getEncoderVelocity(leftMaster.getSelectedSensorVelocity()).getMetersPerSecond(),
-                speed.getMetersPerSecond()));
+        FilterConfiguration filterConfig = new FilterConfiguration();
+        filterConfig.remoteSensorSource = RemoteSensorSource.CANCoder;
 
-        leftMaster.set(ControlMode.PercentOutput, output.getValue() + feedForward);    }
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.remoteFilter0 = filterConfig;
+
+        return motor;
+    }
+
 
 }
