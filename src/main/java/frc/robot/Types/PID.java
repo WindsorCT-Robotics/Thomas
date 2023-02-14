@@ -1,5 +1,7 @@
 package frc.robot.Types;
 
+import edu.wpi.first.math.controller.PIDController;
+
 public class PID {
     private double proportional;
     private double integral;
@@ -33,6 +35,10 @@ public class PID {
 
     public double getD() {
         return derivative;
+    }
+
+    public PIDController toPIDController() {
+        return new PIDController(proportional, integral, derivative);
     }
 
     @Override

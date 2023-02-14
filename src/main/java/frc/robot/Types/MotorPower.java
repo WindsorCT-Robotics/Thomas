@@ -21,7 +21,7 @@ public class MotorPower {
         if (minPower <= value && value <= maxPower) {
             raw = value;
         } else {
-            throw new ValueConstraintException(minPower, maxPower);
+            throw new ValueConstraintException(minPower, maxPower, value);
         }
     }
 

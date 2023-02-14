@@ -8,29 +8,43 @@ import frc.robot.Exceptions.ValueConstraintException;
  * 1.0].
  */
 public class JoystickAxis {
-    public static double minValue = -1.0d;
-    public static double maxValue = 1.0d;
-    private final double value;
+    public static int minValue = -100;
+    public static int maxValue = 100;
+    private final int value;
 
     /**
      * Creates a new representation of a Joystick Axis.
      * 
-     * @param value Joystick value as a percentage with a range from [-1.0 to 1.0].
+     * @param value Joystick value as a percentage with a range from [-100 to 100].
      * @throws ValueConstraintException Thrown when value is out of range.
      */
     public JoystickAxis(double value) throws ValueConstraintException {
+        this((int)(value * 100));
+    }
+
+    /**
+     * Creates a new representation of a Joystick Axis.
+     * 
+     * @param value Joystick value as a percentage with a range from [-100 to 100].
+     * @throws ValueConstraintException Thrown when value is out of range.
+     */
+    public JoystickAxis(int value) throws ValueConstraintException {
         if (minValue <= value && value <= maxValue) {
             this.value = value;
         } else {
-            throw new ValueConstraintException(minValue, maxValue);
+            throw new ValueConstraintException(minValue, maxValue, value);
         }
     }
 
     /**
      * @return The current Joystick Axis value.
      */
-    public double getValue() {
+    public int getValue() {
         return value;
+    }
+
+    public double getAsDouble() {
+        return ((double)value) / 100.0d;
     }
 
     /**
@@ -40,9 +54,22 @@ public class JoystickAxis {
      * @param rvalue Double modifier.
      * @return A new joystick value.
      * @throws ValueConstraintException Thrown when the resulting value would be out
-     *                                  of range [-1.0 to 1.0].
+     *                                  of range [-100 to 100].
      */
     public static JoystickAxis add(JoystickAxis lvalue, double rvalue) throws ValueConstraintException {
+        return new JoystickAxis(lvalue.value + (int)(rvalue * 100));
+    }
+
+        /**
+     * Adds an integer to a joystick value.
+     * 
+     * @param lvalue Joystick value.
+     * @param rvalue Integer modifier.
+     * @return A new joystick value.
+     * @throws ValueConstraintException Thrown when the resulting value would be out
+     *                                  of range [-100 to 100].
+     */
+    public static JoystickAxis add(JoystickAxis lvalue, int rvalue) throws ValueConstraintException {
         return new JoystickAxis(lvalue.value + rvalue);
     }
 
@@ -53,7 +80,7 @@ public class JoystickAxis {
      * @param rvalue Joystick modifier.
      * @return A new joystick value.
      * @throws ValueConstraintException Thrown when the resulting value would be out
-     *                                  of range [-1.0 to 1.0].
+     *                                  of range [-100 to 100].
      */
     public static JoystickAxis add(JoystickAxis lvalue, JoystickAxis rvalue) {
         return new JoystickAxis(lvalue.value + rvalue.value);
@@ -64,9 +91,7 @@ public class JoystickAxis {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        long temp;
-        temp = Double.doubleToLongBits(value);
-        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + (int) (value ^ (value >>> 32));
         return result;
     }
 
@@ -77,7 +102,7 @@ public class JoystickAxis {
      * @return true if both values are identical; false otherwise.
      */
     public boolean equals(JoystickAxis other) {
-        return Double.doubleToLongBits(value) == Double.doubleToLongBits(other.value);
+        return other.value == value;
     }
 
     /**
