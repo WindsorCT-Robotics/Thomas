@@ -10,7 +10,6 @@ import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Types.FeedForwardGains;
-import frc.robot.Types.Meters;
 import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.Milliseconds;
 import frc.robot.Types.PID;
