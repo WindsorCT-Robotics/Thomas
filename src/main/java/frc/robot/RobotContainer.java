@@ -10,6 +10,7 @@ import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Types.FeedForwardGains;
+import frc.robot.Types.Meters;
 import frc.robot.Types.MetersPerSecond;
 import frc.robot.Types.Milliseconds;
 import frc.robot.Types.PID;
@@ -20,59 +21,63 @@ import frc.robot.subsystems.MotorSubsystem;
 import frc.robot.subsystems.NineAxis;
 
 public class RobotContainer {
-    // Subsystems
-    private final NineAxis pidgey;
-    private final Drivetrain drive;
-    private final MotorSubsystem leftMotors;
-    private final MotorSubsystem rightMotors;
+        // Subsystems
+        private final NineAxis pidgey;
+        private final Drivetrain drive;
+        private final MotorSubsystem leftMotors;
+        private final MotorSubsystem rightMotors;
 
-    // Controller
-    private final DriveController driveController;
-    private final double DEADZONE = 0.25; // TODO: placeholder value
-    private final double POSITIVE_RATE_LIMIT = 0.3; // TODO: placeholder value
-    private final double NEGATIVE_RATE_LIMIT = 0.1; // TODO: placeholder value
+        // Controller
+        private final DriveController driveController;
+        private final double DEADZONE = 0.25; // TODO: placeholder value
+        private final double POSITIVE_RATE_LIMIT = 0.3; // TODO: placeholder value
+        private final double NEGATIVE_RATE_LIMIT = 0.1; // TODO: placeholder value
 
-    public RobotContainer() {
+        // Drivetrain values
+        private final MetersPerSecond threshold = new MetersPerSecond(0.01);
+        private final FeedForwardGains gains = new FeedForwardGains(0.18157, 2.3447, 0.54597);
 
-        // Initialize subsystems
-        // TODO: Placeholder PID values
-        leftMotors = new MotorSubsystem("Left Motors", new PID(1, 0, 0), TalonFXInvertType.Clockwise,
-                new MetersPerSecond(0.01), new FeedForwardGains(0.18157, 2.3447, 0.54597),
-                MotorSubsystem.initMotor(1),
-                MotorSubsystem.initMotor(3));
+        public RobotContainer() {
 
-        // TODO: Placeholder PID values
-        rightMotors = new MotorSubsystem("Right Motors", new PID(1, 0, 0), TalonFXInvertType.CounterClockwise,
-                new MetersPerSecond(0.01), new FeedForwardGains(0.18157, 2.3447, 0.54597),
-                MotorSubsystem.initMotor(2),
-                MotorSubsystem.initMotor(4));
+                // Initialize subsystems
+                // TODO: Placeholder PID values
+                leftMotors = new MotorSubsystem("Left Motors", new PID(1, 0, 0), TalonFXInvertType.Clockwise,
+                                threshold, gains,
+                                MotorSubsystem.initMotor(1),
+                                MotorSubsystem.initMotor(3));
 
-        pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
+                // TODO: Placeholder PID values
+                rightMotors = new MotorSubsystem("Right Motors", new PID(1, 0, 0), TalonFXInvertType.CounterClockwise,
+                                threshold, gains,
+                                MotorSubsystem.initMotor(2),
+                                MotorSubsystem.initMotor(4));
 
-        drive = new Drivetrain(
-                leftMotors,
-                rightMotors,
-                pidgey);
+                pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));
 
-        driveController = new DriveController(0, DEADZONE, POSITIVE_RATE_LIMIT, NEGATIVE_RATE_LIMIT);
+                drive = new Drivetrain(
+                                leftMotors,
+                                rightMotors,
+                                pidgey);
 
-        Drive driveCommand = new Drive(
-                drive,
-                pidgey,
-                () -> driveController.getSpeed(),
-                () -> driveController.getAngle());
+                driveController = new DriveController(0, DEADZONE, POSITIVE_RATE_LIMIT, NEGATIVE_RATE_LIMIT);
 
-        configureBindings();
+                Drive driveCommand = new Drive(
+                                drive,
+                                pidgey,
+                                () -> driveController.getSpeed(),
+                                () -> driveController.getAngle());
 
-        drive.setDefaultCommand(driveCommand);
+                configureBindings();
 
-    }
+                drive.setDefaultCommand(driveCommand);
 
-    private void configureBindings() {
-    }
+        }
 
-    public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
-    }
+        private void configureBindings() {
+        }
+
+        public Command getAutonomousCommand() {
+                return Commands.print("No autonomous command configured");
+        }
 
 }

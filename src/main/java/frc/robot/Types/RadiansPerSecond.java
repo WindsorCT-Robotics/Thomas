@@ -17,7 +17,7 @@ public class RadiansPerSecond {
      * Determines equality between two values in milliseconds.
      * 
      * @param obj The object to compare. Always unequal if obj is not a
-     *            MetersPerSecond instance.
+     *            RadiansPerSecond instance.
      * @return true if equal; false otherwise.
      */
     @Override
@@ -31,7 +31,7 @@ public class RadiansPerSecond {
         if (getClass() != obj.getClass())
             return false;
 
-        MetersPerSecond other = (MetersPerSecond) obj;
+        RadiansPerSecond other = (RadiansPerSecond) obj;
         return equals(other);
     }
 

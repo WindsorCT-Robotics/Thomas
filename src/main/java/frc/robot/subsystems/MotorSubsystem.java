@@ -98,7 +98,7 @@ public class MotorSubsystem extends PIDSubsystem {
     }
 
     public void setSpeed(MetersPerSecond speed) {
-        super.getController().setSetpoint(speed.getMetersPerSecond());
+        getController().setSetpoint(speed.getMetersPerSecond());
     }
 
     public void stop() {
