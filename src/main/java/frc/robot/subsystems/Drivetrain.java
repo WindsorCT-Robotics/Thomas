@@ -31,7 +31,9 @@ public class Drivetrain extends SubsystemBase {
     public Drivetrain(MotorSubsystem leftMotor, MotorSubsystem rightMotor, NineAxis pigeon) {
 
         this.leftMotor = leftMotor;
+        addChild("Left motor", leftMotor);
         this.rightMotor = rightMotor;
+        addChild("Right motor", rightMotor);
 
         stop();
     }

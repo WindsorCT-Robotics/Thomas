@@ -42,11 +42,12 @@ public class MotorSubsystem extends PIDSubsystem {
         getController().reset();
         getController().setTolerance(tolerance.getMetersPerSecond());
 
+        master.setInverted(invertType);
+
         for (WPI_TalonFX motor:followers) {
             motor.follow(master);
+            motor.setInverted(TalonFXInvertType.FollowMaster);
         }
-
-        master.setInverted(invertType);
 
         this.motor = master;
     }
