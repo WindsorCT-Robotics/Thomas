@@ -11,6 +11,13 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.DoubleEntry;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 import frc.robot.Types.FeedForwardGains;
@@ -36,21 +43,38 @@ public class MotorSubsystem extends PIDSubsystem {
     // controller
     PIDController controller;
 
-    public MotorSubsystem (String name, PID pid, TalonFXInvertType invertType, MetersPerSecond tolerance, FeedForwardGains gains, WPI_TalonFX master, WPI_TalonFX... followers) {
+    private final DoubleEntry proportional;
+    private final DoubleEntry integral;
+    private final DoubleEntry differential;
+    private final DoubleEntry setpoint;
+    private final DoubleEntry motorPowerOutputPercent;
+    private final DoubleEntry motorSpeed;
+    private final BooleanPublisher atSetpoint;
+    private final BooleanEntry isEnabled;
+
+    private boolean isSubscribed;
+
+    public MotorSubsystem (NetworkTableInstance nt_instance, String name, PID pid, TalonFXInvertType invertType, MetersPerSecond tolerance, FeedForwardGains gains, WPI_TalonFX master, WPI_TalonFX... followers) {
         super(pid.toPIDController());
         controller = super.getController();
-
-        SmartDashboard.putNumber("kP", controller.getP());
-        SmartDashboard.putNumber("kI", controller.getI());
-        SmartDashboard.putNumber("kD", controller.getD());
-        SmartDashboard.putNumber("Setpoint", controller.getSetpoint());
 
         // Feedforward gains
         feedforward = gains.toSimpleMotorFeedforward();
 
         setName(name);
-        getController().reset();
-        getController().setTolerance(tolerance.getMetersPerSecond());
+        controller.reset();
+        controller.setTolerance(tolerance.getMetersPerSecond());
+        
+        NetworkTable motorTable = nt_instance.getTable(name);
+
+        proportional = motorTable.getDoubleTopic("Proportional").getEntry(controller.getP());
+        integral = motorTable.getDoubleTopic("Integral").getEntry(controller.getI());
+        differential = motorTable.getDoubleTopic("Differential").getEntry(controller.getD());
+        setpoint = motorTable.getDoubleTopic("Setpoint").getEntry(controller.getSetpoint());
+        atSetpoint = motorTable.getBooleanTopic("Is At Setpoint?").publish(PubSubOption.topicsOnly(true));
+        motorPowerOutputPercent = motorTable.getDoubleTopic("Motor Power Output (%)").getEntry(0);
+        motorSpeed = motorTable.getDoubleTopic("Motor Speed (Meters/sec)").getEntry(0);
+        isEnabled = motorTable.getBooleanTopic("Enabled").getEntry(m_enabled);
 
         master.setInverted(invertType);
         
@@ -77,14 +101,6 @@ public class MotorSubsystem extends PIDSubsystem {
         return new MetersPerSecond(encoderVelocity * (tenthsToSeconds / encoderUnitsPerMeter));
     }
 
-    /**
-     * Output telemetry data
-     */
-    private void doTelemetry() {
-        SmartDashboard.putNumber(getName() + " Power", motor.getMotorOutputPercent());
-        SmartDashboard.putNumber(getName() + " Speed", getEncoderVelocity(motor.getSelectedSensorVelocity()).getMetersPerSecond());
-    }
-
     @Override
     protected double getMeasurement() {
         return getEncoderVelocity(motor.getSelectedSensorPosition()).getMetersPerSecond();
@@ -92,15 +108,27 @@ public class MotorSubsystem extends PIDSubsystem {
 
     @Override
     public void periodic() {
+        if (isSubscribed) {
+            m_enabled = isEnabled.getAsBoolean();
+            controller.setP(proportional.getAsDouble());
+            controller.setI(integral.getAsDouble());
+            controller.setD(differential.getAsDouble());
+            controller.setSetpoint(setpoint.getAsDouble());
+            motor.set(TalonFXControlMode.PercentOutput, motorPowerOutputPercent.getAsDouble());
+            setSpeed(new MetersPerSecond(motorSpeed.getAsDouble()));
+        }
+
+        isEnabled.set(m_enabled);
+        
+        proportional.set(controller.getP());
+        integral.set(controller.getI());
+        differential.set(controller.getD());
+        setpoint.set(controller.getSetpoint());
         super.periodic();
 
-        double kP = SmartDashboard.getNumber("kP", controller.getP());
-        double kI = SmartDashboard.getNumber("kI", controller.getI());
-        double kD = SmartDashboard.getNumber("kD", controller.getD());
-        double setpoint = SmartDashboard.getNumber("setpoint", controller.getSetpoint());
-
-        SmartDashboard.updateValues();
-        doTelemetry();
+        atSetpoint.set(controller.atSetpoint());
+        motorPowerOutputPercent.set((motor.getMotorOutputPercent()));
+        motorSpeed.set(getMeasurement());
     }
 
     @Override
@@ -141,5 +169,11 @@ public class MotorSubsystem extends PIDSubsystem {
         return motor;
     }
 
-
+    /**
+     * Allows NetworkTable values to update class values. This is generally only set in Test Mode.
+     * @param subscribe If true, changes in the network table will reflect in the class.
+     */
+    public void SubscribeToNetworkTables(boolean subscribe) {
+        isSubscribed = subscribe;
+    }
 }
