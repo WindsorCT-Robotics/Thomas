@@ -23,8 +23,8 @@ public class RobotContainer {
         // Subsystems
         private final NineAxis pidgey;
         private final Drivetrain drive;
-        private final MotorSubsystem leftMotors;
-        private final MotorSubsystem rightMotors;
+        public final MotorSubsystem leftMotors;
+        public final MotorSubsystem rightMotors;
 
         // Controller
         private final DriveController driveController;
@@ -43,12 +43,12 @@ public class RobotContainer {
                 leftMotors = new MotorSubsystem("Left Motors", new PID(1, 0, 0), TalonFXInvertType.Clockwise,
                                 threshold, gains,
                                 MotorSubsystem.initMotor(1),
-                                MotorSubsystem.initMotor(3));
+                                MotorSubsystem.initMotor(2));
 
                 // TODO: Placeholder PID values
                 rightMotors = new MotorSubsystem("Right Motors", new PID(1, 0, 0), TalonFXInvertType.CounterClockwise,
                                 threshold, gains,
-                                MotorSubsystem.initMotor(2),
+                                MotorSubsystem.initMotor(3),
                                 MotorSubsystem.initMotor(4));
 
                 pidgey = new NineAxis(new WPI_Pigeon2(20), new Milliseconds((30)));

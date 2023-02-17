@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.FilterConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
@@ -32,8 +33,17 @@ public class MotorSubsystem extends PIDSubsystem {
     private static final Meters WHEEL_RADIUS = new Meters(.1524);
     private static final Meters WHEEL_CIRCUMFERENCE = new Meters(2 * Math.PI * WHEEL_RADIUS.getMeters());
 
+    // controller
+    PIDController controller;
+
     public MotorSubsystem (String name, PID pid, TalonFXInvertType invertType, MetersPerSecond tolerance, FeedForwardGains gains, WPI_TalonFX master, WPI_TalonFX... followers) {
         super(pid.toPIDController());
+        controller = super.getController();
+
+        SmartDashboard.putNumber("kP", controller.getP());
+        SmartDashboard.putNumber("kI", controller.getI());
+        SmartDashboard.putNumber("kD", controller.getD());
+        SmartDashboard.putNumber("Setpoint", controller.getSetpoint());
 
         // Feedforward gains
         feedforward = gains.toSimpleMotorFeedforward();
@@ -42,11 +52,12 @@ public class MotorSubsystem extends PIDSubsystem {
         getController().reset();
         getController().setTolerance(tolerance.getMetersPerSecond());
 
+        master.setInverted(invertType);
+        
         for (WPI_TalonFX motor:followers) {
             motor.follow(master);
+            motor.setInverted(TalonFXInvertType.FollowMaster);
         }
-
-        master.setInverted(invertType);
 
         this.motor = master;
     }
@@ -82,6 +93,11 @@ public class MotorSubsystem extends PIDSubsystem {
     @Override
     public void periodic() {
         super.periodic();
+
+        double kP = SmartDashboard.getNumber("kP", controller.getP());
+        double kI = SmartDashboard.getNumber("kI", controller.getI());
+        double kD = SmartDashboard.getNumber("kD", controller.getD());
+        double setpoint = SmartDashboard.getNumber("setpoint", controller.getSetpoint());
 
         SmartDashboard.updateValues();
         doTelemetry();
