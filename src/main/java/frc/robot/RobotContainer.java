@@ -4,9 +4,13 @@
 
 package frc.robot;
 
+import java.net.NetworkInterface;
+
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Types.FeedForwardGains;
@@ -20,6 +24,8 @@ import frc.robot.subsystems.MotorSubsystem;
 import frc.robot.subsystems.NineAxis;
 
 public class RobotContainer {
+        // NetworkTables Instance
+        private final NetworkTableInstance nt_instance;
         // Subsystems
         private final NineAxis pidgey;
         private final Drivetrain drive;
@@ -37,16 +43,19 @@ public class RobotContainer {
         private final FeedForwardGains gains = new FeedForwardGains(0.18157, 2.3447, 0.54597);
 
         public RobotContainer() {
+                nt_instance = NetworkTableInstance.getDefault();
 
                 // Initialize subsystems
                 // TODO: Placeholder PID values
-                leftMotors = new MotorSubsystem("Left Motors", new PID(1, 0, 0), TalonFXInvertType.Clockwise,
+                leftMotors = new MotorSubsystem(nt_instance, "Left Motors", new PID(1, 0, 0),
+                                TalonFXInvertType.Clockwise,
                                 threshold, gains,
                                 MotorSubsystem.initMotor(1),
                                 MotorSubsystem.initMotor(2));
 
                 // TODO: Placeholder PID values
-                rightMotors = new MotorSubsystem("Right Motors", new PID(1, 0, 0), TalonFXInvertType.CounterClockwise,
+                rightMotors = new MotorSubsystem(nt_instance, "Right Motors", new PID(1, 0, 0),
+                                TalonFXInvertType.CounterClockwise,
                                 threshold, gains,
                                 MotorSubsystem.initMotor(3),
                                 MotorSubsystem.initMotor(4));
